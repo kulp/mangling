@@ -36,12 +36,20 @@ pub fn mangle(name : &[u8]) -> String {
 
     out.push('_');
 
+    let begin_ok = |x| char::from(x).is_alphabetic() || char::from(x) == '_';
+    let within_ok = |x| begin_ok(x) || char::from(x).is_numeric();
+
     while offset < name.len() {
-        if let Some(m) = re_token.find(&String::from_utf8_lossy(&name[offset..])) {
-            let s = m.as_str();
-            let len = s.len();
+        let mut len = 0;
+        if begin_ok(name[offset + len]) {
+            while offset + len < name.len() && within_ok(name[offset + len]) {
+                len += 1;
+            }
+            match &String::from_utf8(name[offset..offset + len].to_vec()) {
+                Ok(s) => out.push_str(&format!("{}{}", len, s)),
+                Err(s) => panic!("TODO"),
+            }
             offset += len;
-            out.push_str(&format!("{}{}", len, s));
         }
         if let Some(m) = re_nontoken.find(&String::from_utf8_lossy(&name[offset..])) {
             if m.as_str().len() > 0 {
