@@ -34,22 +34,23 @@ pub fn mangle(name : &str) -> String {
     return out;
 }
 
+#[cfg(test)]
+const MANGLE_LIST : &[(&str, &str)] = &[
+    ( "()V"                        , "_02_28291V"                                            ),
+    ( "(II)I"                      , "_01_282II01_291I"                                      ),
+    ( "<init>"                     , "_01_3c4init01_3e"                                      ),
+    ( "<init>:()V"                 , "_01_3c4init04_3e3a28291V"                              ),
+    ( "Code"                       , "_4Code"                                                ),
+    ( "GCD"                        , "_3GCD"                                                 ),
+    ( "StackMapTable"              , "_13StackMapTable"                                      ),
+    ( "gcd"                        , "_3gcd"                                                 ),
+    ( "java/lang/Object"           , "_4java01_2f4lang01_2f6Object"                          ),
+    ( "java/lang/Object.<init>:()V", "_4java01_2f4lang01_2f6Object02_2e3c4init04_3e3a28291V" ),
+];
+
 #[test]
 fn test_mangle_0() {
-    let list = &vec![
-        ( "()V"                        , "_02_28291V"                                            ),
-        ( "(II)I"                      , "_01_282II01_291I"                                      ),
-        ( "<init>"                     , "_01_3c4init01_3e"                                      ),
-        ( "<init>:()V"                 , "_01_3c4init04_3e3a28291V"                              ),
-        ( "Code"                       , "_4Code"                                                ),
-        ( "GCD"                        , "_3GCD"                                                 ),
-        ( "StackMapTable"              , "_13StackMapTable"                                      ),
-        ( "gcd"                        , "_3gcd"                                                 ),
-        ( "java/lang/Object"           , "_4java01_2f4lang01_2f6Object"                          ),
-        ( "java/lang/Object.<init>:()V", "_4java01_2f4lang01_2f6Object02_2e3c4init04_3e3a28291V" ),
-    ];
-
-    for (from, to) in list {
+    for (from, to) in MANGLE_LIST {
         assert_eq!(&mangle(from), to);
     }
 }
