@@ -1,4 +1,3 @@
-use lazy_static::lazy_static;
 use regex::Regex;
 
 #[cfg(test)]
@@ -25,21 +24,19 @@ fn test_mangle() {
 pub fn mangle(name : &str) -> String {
     let mut offset = 0;
     let mut out = String::with_capacity(2 * name.len()); // heuristic
-    lazy_static! {
-        static ref RE_TOKEN    : Regex = Regex::new(r"^(?i)[a-z_]\w*").unwrap();
-        static ref RE_NONTOKEN : Regex = Regex::new(r"^[0-9]*\W*").unwrap();
-    }
+    let re_token    = Regex::new(r"^(?i)[a-z_]\w*").unwrap();
+    let re_nontoken = Regex::new(r"^[0-9]*\W*").unwrap();
 
     out.push('_');
 
     while offset < name.len() {
-        if let Some(m) = RE_TOKEN.find(&name[offset..]) {
+        if let Some(m) = re_token.find(&name[offset..]) {
             let s = m.as_str();
             let len = s.len();
             offset += len;
             out.push_str(&format!("{}{}", len, s));
         }
-        if let Some(m) = RE_NONTOKEN.find(&name[offset..]) {
+        if let Some(m) = re_nontoken.find(&name[offset..]) {
             if m.as_str().len() > 0 {
                 let s = m.as_str();
                 let len = s.len();
@@ -65,7 +62,7 @@ fn test_demangle() {
 pub fn demangle(name : &str) -> String { // TODO Option<String>
     let mut offset = 0;
     let mut out = String::with_capacity(name.len());
-    lazy_static! { static ref NUM : Regex = Regex::new(r"^\d+").unwrap(); }
+    let num = Regex::new(r"^\d+").unwrap();
 
     if &name[0..1] != "_" {
         panic!("Bad identifier (expected `_`)");
@@ -79,7 +76,7 @@ pub fn demangle(name : &str) -> String { // TODO Option<String>
             offset += 1;
             is_hex = true;
         }
-        let m = NUM.find(&name[offset..])
+        let m = num.find(&name[offset..])
                    .expect("Bad identifier (expected number)");
         let len = usize::from_str_radix(m.as_str(), 10)
             .expect("Hex parse failure");
