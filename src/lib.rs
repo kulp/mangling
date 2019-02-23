@@ -55,6 +55,13 @@ fn test_mangle_0() {
     }
 }
 
+#[test]
+fn test_demangle_0() {
+    for (unmangled, mangled) in MANGLE_LIST {
+        assert_eq!(unmangled, &demangle(mangled));
+    }
+}
+
 pub fn demangle(name : &str) -> String { // TODO Option<String>
     let mut offset = 0;
     let mut out = String::with_capacity(name.len());
