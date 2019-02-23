@@ -24,11 +24,11 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 #[test]
 fn test_mangle() {
     for (unmangled, mangled) in MANGLE_LIST {
-        assert_eq!(&mangle(unmangled), mangled);
+        assert_eq!(&mangle(unmangled.as_ref()), mangled);
     }
 }
 
-pub fn mangle(name : &str) -> String {
+pub fn mangle(name : &[u8]) -> String {
     let mut offset = 0;
     let mut out = String::with_capacity(2 * name.len()); // heuristic
     let re_token    = Regex::new(r"^(?i)[a-z_]\w*").unwrap();
@@ -37,13 +37,13 @@ pub fn mangle(name : &str) -> String {
     out.push('_');
 
     while offset < name.len() {
-        if let Some(m) = re_token.find(&name[offset..]) {
+        if let Some(m) = re_token.find(&String::from_utf8_lossy(&name[offset..])) {
             let s = m.as_str();
             let len = s.len();
             offset += len;
             out.push_str(&format!("{}{}", len, s));
         }
-        if let Some(m) = re_nontoken.find(&name[offset..]) {
+        if let Some(m) = re_nontoken.find(&String::from_utf8_lossy(&name[offset..])) {
             if m.as_str().len() > 0 {
                 let s = m.as_str();
                 let len = s.len();
@@ -118,7 +118,7 @@ fn test_round_trip() {
         let len = norm.sample(&mut rng) as usize;
         let rs : String = rng.sample_iter(&Alphanumeric).take(len).collect();
 
-        assert_eq!(&rs, &demangle(&mangle(&rs)));
+        assert_eq!(&rs, &demangle(&mangle(&rs.as_ref())));
     }
 }
 
