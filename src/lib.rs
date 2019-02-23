@@ -1,4 +1,5 @@
 extern crate rand;
+extern crate regex;
 
 use rand::distributions::{Alphanumeric, Distribution, Normal};
 use rand::{thread_rng, Rng};
