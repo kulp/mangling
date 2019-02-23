@@ -1,7 +1,9 @@
 extern crate rand;
 extern crate regex;
 
+#[cfg(test)]
 use rand::distributions::{Alphanumeric, Distribution, Normal};
+#[cfg(test)]
 use rand::{thread_rng, Rng};
 use regex::Regex;
 
