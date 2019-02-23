@@ -70,13 +70,15 @@ pub fn mangle(name : &[u8]) -> String {
 #[test]
 fn test_demangle() {
     for (unmangled, mangled) in MANGLE_LIST {
-        assert_eq!(unmangled, &demangle(mangled));
+        let got : Vec<u8> = demangle(mangled);
+        let want : Vec<u8> = unmangled.to_owned().to_string().into();
+        assert_eq!(want, got);
     }
 }
 
-pub fn demangle(name : &str) -> String { // TODO Option<String>
+pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
     let mut offset = 0;
-    let mut out = String::with_capacity(name.len());
+    let mut out = Vec::with_capacity(name.len());
     let num = Regex::new(r"^\d+").unwrap();
 
     if &name[0..1] != "_" {
@@ -102,13 +104,10 @@ pub fn demangle(name : &str) -> String { // TODO Option<String>
             }
             offset += 1;
             let nybbles = 2 * len;
-            let vec = dehexify(&name[offset..offset+nybbles]);
-            let utf8 = String::from_utf8(vec)
-                .expect("Expected UTF-8 string");
-            out.push_str(&utf8);
+            out.append(&mut dehexify(&name[offset..offset+nybbles]));
             offset += nybbles;
         } else {
-            out.push_str(&name[offset..offset+len]);
+            out.append(&mut Vec::from(&name[offset..offset+len]));
             offset += len;
         }
         is_hex = false;
@@ -125,8 +124,9 @@ fn test_round_trip() {
     for i in 1..10 {
         let len = norm.sample(&mut rng) as usize;
         let rs : String = rng.sample_iter(&Alphanumeric).take(len).collect();
+        let rst : Vec<u8> = rs.to_string().into();
 
-        assert_eq!(&rs, &demangle(&mangle(&rs.as_ref())));
+        assert_eq!(&rst, &demangle(&mangle(&rs.as_ref())));
     }
 }
 
