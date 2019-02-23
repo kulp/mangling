@@ -2,7 +2,7 @@ extern crate rand;
 extern crate regex;
 
 #[cfg(test)]
-use rand::distributions::{Alphanumeric, Distribution, Normal};
+use rand::distributions::{Distribution, Normal, Standard};
 #[cfg(test)]
 use rand::{thread_rng, Rng};
 use regex::Regex;
@@ -129,10 +129,9 @@ fn test_round_trip() {
     let norm = Normal::new(20.0, 5.0);
     for i in 1..10 {
         let len = norm.sample(&mut rng) as usize;
-        let rs : String = rng.sample_iter(&Alphanumeric).take(len).collect();
-        let rst : Vec<u8> = rs.to_string().into();
+        let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
 
-        assert_eq!(&rst, &demangle(&mangle(&rs.as_ref())));
+        assert_eq!(rs, demangle(&mangle(&rs.as_ref())));
     }
 }
 
