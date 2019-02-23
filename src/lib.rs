@@ -50,8 +50,8 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 
 #[test]
 fn test_mangle_0() {
-    for (from, to) in MANGLE_LIST {
-        assert_eq!(&mangle(from), to);
+    for (unmangled, mangled) in MANGLE_LIST {
+        assert_eq!(&mangle(unmangled), mangled);
     }
 }
 
