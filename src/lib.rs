@@ -1,3 +1,7 @@
+extern crate rand;
+
+use rand::distributions::{Alphanumeric, Distribution, Normal};
+use rand::{thread_rng, Rng};
 use regex::Regex;
 
 #[cfg(test)]
@@ -101,6 +105,18 @@ pub fn demangle(name : &str) -> String { // TODO Option<String>
 
     out.shrink_to_fit();
     return out;
+}
+
+#[test]
+fn test_round_trip() {
+    let mut rng = thread_rng();
+    let norm = Normal::new(20.0, 5.0);
+    for i in 1..10 {
+        let len = norm.sample(&mut rng) as usize;
+        let rs : String = rng.sample_iter(&Alphanumeric).take(len).collect();
+
+        assert_eq!(&rs, &demangle(&mangle(&rs)));
+    }
 }
 
 fn hexify(s : &str) -> String {
