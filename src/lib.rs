@@ -56,7 +56,7 @@ pub fn mangle(name : &[u8]) -> String {
                 let s = m.as_str();
                 let len = s.len();
                 offset += len;
-                out.push_str(&format!("0{}_{}", len, hexify(&s)));
+                out.push_str(&format!("0{}_{}", len, hexify(s.as_bytes())));
             } else if offset < name.len() {
                 panic!("Unable to progress");
             }
@@ -130,9 +130,8 @@ fn test_round_trip() {
     }
 }
 
-fn hexify(s : &str) -> String {
+fn hexify(bytes : &[u8]) -> String {
     let mut out = String::new();
-    let bytes = s.as_bytes();
 
     for &b in bytes {
         out.push_str(&format!("{:02x}", &b));
