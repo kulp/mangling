@@ -31,7 +31,6 @@ fn test_mangle() {
 pub fn mangle(name : &[u8]) -> String {
     let mut offset = 0;
     let mut out = String::with_capacity(2 * name.len()); // heuristic
-    let re_token    = Regex::new(r"^(?i)[a-z_]\w*").unwrap();
     let re_nontoken = Regex::new(r"^[0-9]*\W*").unwrap();
 
     out.push('_');
