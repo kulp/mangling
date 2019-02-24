@@ -29,41 +29,48 @@ fn test_mangle() {
 }
 
 pub fn mangle(name : &[u8]) -> String {
-    let mut offset = 0;
     let mut out = String::with_capacity(2 * name.len()); // heuristic
-    let re_nontoken = Regex::new(r"^[0-9]*\W*").unwrap();
 
     out.push('_');
 
-    let begin_ok = |x| char::from(x).is_alphabetic() || char::from(x) == '_';
-    let within_ok = |x| begin_ok(x) || char::from(x).is_numeric();
+    let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
+    let within_ok = |x : char| begin_ok(x) || x.is_digit(10);
 
-    while offset < name.len() {
-        let mut len = 0;
-        if begin_ok(name[offset + len]) {
-            while offset + len < name.len() && within_ok(name[offset + len]) {
-                len += 1;
-            }
-            match &String::from_utf8(name[offset..offset + len].to_vec()) {
-                Ok(s) => out.push_str(&format!("{}{}", len, s)),
-                Err(s) => panic!("TODO"),
-            }
-            offset += len;
-        }
-        if let Some(m) = re_nontoken.find(&String::from_utf8_lossy(&name[offset..])) {
-            if m.as_str().len() > 0 {
-                let s = m.as_str();
-                let len = s.len();
-                offset += len;
-                out.push_str(&format!("0{}_{}", len, hexify(s.as_bytes())));
-            } else if offset < name.len() {
-                panic!("Unable to progress");
+    let mut remain = name.to_vec().into_iter().peekable();
+
+    loop {
+        let mut v = Vec::new();
+        match remain.peek() {
+            Some(&r) if begin_ok(char::from(r)) => {
+                loop {
+                    match remain.peek() {
+                        Some(&r) if within_ok(char::from(r)) => {
+                            v.push(r);
+                            remain.next();
+                        },
+                        _ => break,
+                    }
+                }
+                out.push_str(&format!("{}{}", v.len(), String::from_utf8(v).unwrap()));
+            },
+            Some(_) => {
+                loop {
+                    match remain.peek() {
+                        Some(&r) if !begin_ok(char::from(r)) => {
+                            v.push(r);
+                            remain.next();
+                        },
+                        _ => break,
+                    }
+                }
+                out.push_str(&format!("0{}_{}", v.len(), hexify(v.as_ref())));
+            },
+            _ => {
+                out.shrink_to_fit();
+                return out;
             }
         }
     }
-
-    out.shrink_to_fit();
-    return out;
 }
 
 #[test]
