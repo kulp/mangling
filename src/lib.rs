@@ -36,15 +36,15 @@ pub fn mangle(name : &[u8]) -> String {
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
     let within_ok = |x : char| begin_ok(x) || x.is_digit(10);
 
-    let mut remain = name.to_vec().into_iter().peekable();
+    let mut remain = name.iter().peekable();
 
     loop {
         let mut v = Vec::new();
         match remain.peek() {
-            Some(&r) if begin_ok(char::from(r)) => {
+            Some(&&r) if begin_ok(char::from(r)) => {
                 loop {
                     match remain.peek() {
-                        Some(&r) if within_ok(char::from(r)) => {
+                        Some(&&r) if within_ok(char::from(r)) => {
                             v.push(r);
                             remain.next();
                         },
@@ -56,7 +56,7 @@ pub fn mangle(name : &[u8]) -> String {
             Some(_) => {
                 loop {
                     match remain.peek() {
-                        Some(&r) if !begin_ok(char::from(r)) => {
+                        Some(&&r) if !begin_ok(char::from(r)) => {
                             v.push(r);
                             remain.next();
                         },
