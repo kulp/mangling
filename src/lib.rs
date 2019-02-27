@@ -83,46 +83,49 @@ fn test_demangle() {
 }
 
 pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
-    let mut out = Vec::with_capacity(name.len());
-
-    let mut name = &name[..];
     if &name[0..1] != "_" {
         panic!("Bad identifier (expected `_`)");
     } else {
-        name = &name[1..];
+        return demangle_inner(&name[1..]);
     }
 
-    let mut is_hex = false;
-    while !name.is_empty() {
-        if &name[..1] == "0" {
-            name = &name[1..];
-            is_hex = true;
+    fn demangle_hex(len : usize, name : &str) -> Vec<u8> {
+        let mut out = Vec::with_capacity(name.len());
+
+        if &name[..1] != "_" {
+            panic!("Bad identifier (expected `_`)");
         }
-        let len = match name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
+        let nybbles = 2 * len;
+        out.append(&mut dehexify(&name[1..1+nybbles]));
+        out.append(&mut demangle_inner(&name[1+nybbles..]));
+
+        return out;
+    }
+
+    fn demangle_inner(name : &str) -> Vec<u8> {
+        let mut out = Vec::with_capacity(name.len());
+
+        if name.is_empty() {
+            return out;
+        }
+
+        let is_hex = &name[..1] == "0";
+        let (len, name) = match name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
             Some((not_num, _)) => {
                 let (num_str, new_name) = name.split_at(not_num);
-                name = new_name;
-                usize::from_str(num_str).unwrap()
+                (usize::from_str(num_str).unwrap(), new_name)
             },
             _ => panic!("did not find a number"),
         };
         if is_hex {
-            if &name[..1] != "_" {
-                panic!("Bad identifier (expected `_`)");
-            }
-            name = &name[1..];
-            let nybbles = 2 * len;
-            out.append(&mut dehexify(&name[..nybbles]));
-            name = &name[nybbles..];
+            return demangle_hex(len, name);
         } else {
             out.append(&mut Vec::from(&name[..len]));
-            name = &name[len..];
+            out.append(&mut demangle_inner(&name[len..]));
         }
-        is_hex = false;
-    }
 
-    out.shrink_to_fit();
-    return out;
+        return out;
+    }
 }
 
 #[test]
