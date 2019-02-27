@@ -12,4 +12,3 @@ maintenance = { status = "experimental" }
 
 [dependencies]
 rand = "0.5"
-regex = "0.2"

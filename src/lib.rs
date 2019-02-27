@@ -1,11 +1,11 @@
 extern crate rand;
-extern crate regex;
 
 #[cfg(test)]
 use rand::distributions::{Distribution, Normal, Standard};
 #[cfg(test)]
 use rand::{thread_rng, Rng};
-use regex::Regex;
+
+use std::str::FromStr;
 
 #[cfg(test)]
 const MANGLE_LIST : &[(&str, &str)] = &[
@@ -85,7 +85,6 @@ fn test_demangle() {
 pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
     let mut offset = 0;
     let mut out = Vec::with_capacity(name.len());
-    let num = Regex::new(r"^\d+").unwrap();
 
     if &name[0..1] != "_" {
         panic!("Bad identifier (expected `_`)");
@@ -99,11 +98,12 @@ pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
             offset += 1;
             is_hex = true;
         }
-        let m = num.find(&name[offset..])
-                   .expect("Bad identifier (expected number)");
-        let len = usize::from_str_radix(m.as_str(), 10)
-            .expect("Hex parse failure");
-        offset += m.as_str().len();
+        let mut not_num = 0;
+        while char::from(*name.as_bytes()[offset + not_num..].first().unwrap()).is_ascii_digit() {
+            not_num += 1;
+        }
+        let len = usize::from_str(&name[offset..offset + not_num]).unwrap();
+        offset += not_num;
         if is_hex {
             if &name[offset..offset+1] != "_" {
                 panic!("Bad identifier (expected `_`)");
