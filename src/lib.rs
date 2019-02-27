@@ -83,38 +83,38 @@ fn test_demangle() {
 }
 
 pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
-    let mut offset = 0;
     let mut out = Vec::with_capacity(name.len());
 
+    let mut name = &name[..];
     if &name[0..1] != "_" {
         panic!("Bad identifier (expected `_`)");
     } else {
-        offset += 1;
+        name = &name[1..];
     }
 
     let mut is_hex = false;
-    while offset < name.len() {
-        if &name[offset..offset+1] == "0" {
-            offset += 1;
+    while !name.is_empty() {
+        if &name[..1] == "0" {
+            name = &name[1..];
             is_hex = true;
         }
         let mut not_num = 0;
-        while char::from(*name.as_bytes()[offset + not_num..].first().unwrap()).is_ascii_digit() {
+        while char::from(*name.as_bytes()[not_num..].first().unwrap()).is_ascii_digit() {
             not_num += 1;
         }
-        let len = usize::from_str(&name[offset..offset + not_num]).unwrap();
-        offset += not_num;
+        let len = usize::from_str(&name[..not_num]).unwrap();
+        name = &name[not_num..];
         if is_hex {
-            if &name[offset..offset+1] != "_" {
+            if &name[..1] != "_" {
                 panic!("Bad identifier (expected `_`)");
             }
-            offset += 1;
+            name = &name[1..];
             let nybbles = 2 * len;
-            out.append(&mut dehexify(&name[offset..offset+nybbles]));
-            offset += nybbles;
+            out.append(&mut dehexify(&name[..nybbles]));
+            name = &name[nybbles..];
         } else {
-            out.append(&mut Vec::from(&name[offset..offset+len]));
-            offset += len;
+            out.append(&mut Vec::from(&name[..len]));
+            name = &name[len..];
         }
         is_hex = false;
     }
