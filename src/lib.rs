@@ -103,28 +103,23 @@ pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
     }
 
     fn demangle_inner(name : &str) -> Vec<u8> {
-        let mut out = Vec::with_capacity(name.len());
-
-        if name.is_empty() {
-            return out;
-        }
-
-        let is_hex = &name[..1] == "0";
-        let (len, name) = match name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
+        let (len, new_name) = match name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
             Some((not_num, _)) => {
                 let (num_str, new_name) = name.split_at(not_num);
                 (usize::from_str(num_str).unwrap(), new_name)
             },
-            _ => panic!("did not find a number"),
+            _ => if name.is_empty() { return vec![]; } else { panic!("did not find a number"); },
         };
-        if is_hex {
-            return demangle_hex(len, name);
-        } else {
-            out.append(&mut Vec::from(&name[..len]));
-            out.append(&mut demangle_inner(&name[len..]));
-        }
 
-        return out;
+        if &name[..1] == "0" {
+            return demangle_hex(len, new_name);
+        } else {
+            let mut out = Vec::with_capacity(name.len());
+            let (before, after) = new_name.split_at(len);
+            out.append(&mut Vec::from(before));
+            out.append(&mut demangle_inner(after));
+            return out;
+        }
     }
 }
 
