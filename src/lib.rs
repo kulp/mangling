@@ -98,12 +98,14 @@ pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
             name = &name[1..];
             is_hex = true;
         }
-        let mut not_num = 0;
-        while char::from(*name.as_bytes()[not_num..].first().unwrap()).is_ascii_digit() {
-            not_num += 1;
-        }
-        let len = usize::from_str(&name[..not_num]).unwrap();
-        name = &name[not_num..];
+        let len = match name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
+            Some((not_num, _)) => {
+                let (num_str, new_name) = name.split_at(not_num);
+                name = new_name;
+                usize::from_str(num_str).unwrap()
+            },
+            _ => panic!("did not find a number"),
+        };
         if is_hex {
             if &name[..1] != "_" {
                 panic!("Bad identifier (expected `_`)");
