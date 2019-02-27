@@ -83,42 +83,35 @@ fn test_demangle() {
 }
 
 pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
-    if &name[0..1] != "_" {
+    if &name[..1] != "_" {
         panic!("Bad identifier (expected `_`)");
     } else {
-        return demangle_inner(&name[1..]);
-    }
-
-    fn demangle_hex(len : usize, name : &str) -> Vec<u8> {
         let mut out = Vec::with_capacity(name.len());
-
-        if &name[..1] != "_" {
-            panic!("Bad identifier (expected `_`)");
-        }
-        let nybbles = 2 * len;
-        out.append(&mut dehexify(&name[1..1+nybbles]));
-        out.append(&mut demangle_inner(&name[1+nybbles..]));
-
+        demangle_inner(&mut out, &name[1..]);
         return out;
     }
 
-    fn demangle_inner(name : &str) -> Vec<u8> {
-        let (len, new_name) = match name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
-            Some((not_num, _)) => {
-                let (num_str, new_name) = name.split_at(not_num);
-                (usize::from_str(num_str).unwrap(), new_name)
-            },
-            _ => if name.is_empty() { return vec![]; } else { panic!("did not find a number"); },
-        };
+    fn demangle_inner(mut out : &mut Vec<u8>, name : &str) {
+        if let Some((not_num, _)) = name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
+            let (num_str, new_name) = name.split_at(not_num);
+            let len = usize::from_str(num_str).unwrap();
 
-        if &name[..1] == "0" {
-            return demangle_hex(len, new_name);
+            if &name[..1] == "0" {
+                if &new_name[..1] != "_" {
+                    panic!("Bad identifier (expected `_`)");
+                }
+                let nybbles = 2 * len;
+                out.append(&mut dehexify(&new_name[1..1+nybbles]));
+                demangle_inner(&mut out, &new_name[1+nybbles..]);
+            } else {
+                let (before, after) = new_name.split_at(len);
+                out.append(&mut Vec::from(before));
+                demangle_inner(&mut out, after);
+            }
+        } else if name.is_empty() {
+            return;
         } else {
-            let mut out = Vec::with_capacity(name.len());
-            let (before, after) = new_name.split_at(len);
-            out.append(&mut Vec::from(before));
-            out.append(&mut demangle_inner(after));
-            return out;
+            panic!("did not find a number");
         }
     }
 }
