@@ -100,9 +100,11 @@ pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
                 if &new_name[..1] != "_" {
                     panic!("Bad identifier (expected `_`)");
                 }
-                let nybbles = 2 * len;
-                out.append(&mut dehexify(&new_name[1..1+nybbles]));
-                demangle_inner(&mut out, &new_name[1+nybbles..]);
+                let new_name = &new_name[1..];
+                let len = 2 * len;
+                let (before, after) = new_name.split_at(len);
+                out.append(&mut dehexify(before));
+                demangle_inner(&mut out, after);
             } else {
                 let (before, after) = new_name.split_at(len);
                 out.append(&mut Vec::from(before));
