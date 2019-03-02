@@ -1,5 +1,3 @@
-extern crate rand;
-
 #[cfg(test)]
 use rand::distributions::{Distribution, Normal, Standard};
 #[cfg(test)]
