@@ -122,7 +122,7 @@ pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
 fn test_round_trip() {
     let mut rng = thread_rng();
     let norm = Normal::new(20.0, 5.0);
-    for i in 1..10 {
+    for _ in 1..10 {
         let len = norm.sample(&mut rng) as usize;
         let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
 
