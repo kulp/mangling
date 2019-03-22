@@ -137,7 +137,7 @@ fn hexify(bytes : &[u8]) -> String {
         out.push_str(&format!("{:02x}", &b));
     }
 
-    return out;
+    out
 }
 
 fn dehexify(s : &str) -> Vec<u8> {
@@ -149,6 +149,6 @@ fn dehexify(s : &str) -> Vec<u8> {
         out.push(hex);
     }
 
-    return out;
+    out
 }
 
