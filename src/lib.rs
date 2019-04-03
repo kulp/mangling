@@ -103,6 +103,8 @@ fn test_demangle() -> Result<()> {
         let want : Vec<u8> = unmangled.to_owned().to_string().into();
         assert_eq!(want, got);
     }
+
+    assert!(demangle("bad").is_err());
     Ok(())
 }
 
