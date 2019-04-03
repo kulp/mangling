@@ -73,27 +73,31 @@ pub fn mangle(name : &[u8]) -> String {
     }
 }
 
+use std::error::Error;
+type Result<T> = std::result::Result<T, Box<Error>>;
+
 #[test]
-fn test_demangle() {
+fn test_demangle() -> Result<()> {
     for (unmangled, mangled) in MANGLE_LIST {
-        let got : Vec<u8> = demangle(mangled);
+        let got : Vec<u8> = demangle(mangled)?;
         let want : Vec<u8> = unmangled.to_owned().to_string().into();
         assert_eq!(want, got);
     }
+    Ok(())
 }
 
-pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
+pub fn demangle(name : &str) -> Result<Vec<u8>> {
     if &name[..1] != "_" {
         panic!("Bad identifier (expected `_`)");
     } else {
         let mut out = Vec::with_capacity(name.len());
-        demangle_inner(&mut out, &name[1..]);
-        return out;
+        demangle_inner(&mut out, &name[1..])?;
+        return Ok(out);
     }
 
-    fn demangle_inner(mut out : &mut Vec<u8>, name : &str) {
+    fn demangle_inner(mut out : &mut Vec<u8>, name : &str) -> Result<()> {
         if name.is_empty() {
-            return;
+            return Ok(());
         } else if let Some((not_num, _)) = name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
             let (num_str, new_name) = name.split_at(not_num);
             let len = usize::from_str(num_str).unwrap();
@@ -105,12 +109,12 @@ pub fn demangle(name : &str) -> Vec<u8> { // TODO Option<Vec<u8>>
                 let new_name = &new_name[1..];
                 let len = 2 * len;
                 let (before, after) = new_name.split_at(len);
-                out.append(&mut dehexify(before));
-                demangle_inner(&mut out, after);
+                out.append(&mut dehexify(before)?);
+                demangle_inner(&mut out, after)
             } else {
                 let (before, after) = new_name.split_at(len);
                 out.append(&mut Vec::from(before));
-                demangle_inner(&mut out, after);
+                demangle_inner(&mut out, after)
             }
         } else {
             panic!("did not find a number");
@@ -126,7 +130,7 @@ fn test_round_trip() {
         let len = norm.sample(&mut rng) as usize;
         let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
 
-        assert_eq!(rs, demangle(&mangle(&rs.as_ref())));
+        assert_eq!(rs, demangle(&mangle(&rs.as_ref())).unwrap());
     }
 }
 
@@ -134,8 +138,8 @@ fn hexify(bytes : &[u8]) -> String {
     bytes.iter().map(|b| format!("{:02x}", &b)).collect::<Vec<_>>().concat()
 }
 
-fn dehexify(s : &str) -> Vec<u8> {
+fn dehexify(s : &str) -> Result<Vec<u8>> {
     let parse = |v| u8::from_str_radix(std::str::from_utf8(v).unwrap(), 16).expect("Hex parse failure");
-    s.as_bytes().chunks(2).map(parse).collect()
+    Ok(s.as_bytes().chunks(2).map(parse).collect())
 }
 
