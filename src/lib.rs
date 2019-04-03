@@ -135,14 +135,7 @@ fn hexify(bytes : &[u8]) -> String {
 }
 
 fn dehexify(s : &str) -> Vec<u8> {
-    let mut out = Vec::with_capacity(s.len() / 2);
-
-    for i in 0..(s.len() / 2) {
-        let hex = u8::from_str_radix(&s[i*2..i*2+2], 16)
-                    .expect("Hex parse failure");
-        out.push(hex);
-    }
-
-    out
+    let parse = |v| u8::from_str_radix(std::str::from_utf8(v).unwrap(), 16).expect("Hex parse failure");
+    s.as_bytes().chunks(2).map(parse).collect()
 }
 
