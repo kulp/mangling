@@ -76,6 +76,26 @@ pub fn mangle(name : &[u8]) -> String {
 use std::error::Error;
 type Result<T> = std::result::Result<T, Box<Error>>;
 
+#[derive(Debug)]
+pub struct MangleError(String);
+
+impl MangleError {
+    fn new(msg: &str) -> MangleError {
+        MangleError(msg.to_string())
+    }
+}
+
+use std::fmt;
+impl fmt::Display for MangleError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Error for MangleError {
+    fn description(&self) -> &str { &self.0 }
+}
+
 #[test]
 fn test_demangle() -> Result<()> {
     for (unmangled, mangled) in MANGLE_LIST {
@@ -88,7 +108,7 @@ fn test_demangle() -> Result<()> {
 
 pub fn demangle(name : &str) -> Result<Vec<u8>> {
     if &name[..1] != "_" {
-        panic!("Bad identifier (expected `_`)");
+        return Err(Box::new(MangleError::new("Bad identifier (expected `_`)")));
     } else {
         let mut out = Vec::with_capacity(name.len());
         demangle_inner(&mut out, &name[1..])?;
@@ -104,7 +124,7 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
 
             if &name[..1] == "0" {
                 if &new_name[..1] != "_" {
-                    panic!("Bad identifier (expected `_`)");
+                    return Err(Box::new(MangleError::new("Bad identifier (expected `_`)")));
                 }
                 let new_name = &new_name[1..];
                 let len = 2 * len;
@@ -117,7 +137,7 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
                 demangle_inner(&mut out, after)
             }
         } else {
-            panic!("did not find a number");
+            return Err(Box::new(MangleError::new("did not find a number")));
         }
     }
 }
