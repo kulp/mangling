@@ -24,27 +24,29 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 #[test]
 fn test_mangle() {
     for (unmangled, mangled) in MANGLE_LIST {
-        assert_eq!(&mangle(unmangled.as_ref()), mangled);
+        assert_eq!(&mangle(unmangled.bytes()), mangled);
     }
 }
 
-pub fn mangle(name : &[u8]) -> String {
-    let mut out = String::with_capacity(2 * name.len()); // heuristic
+pub fn mangle<T>(name : T) -> String
+    where T : IntoIterator<Item=u8>
+{
+    let mut out = String::new();
 
     out.push('_');
 
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
     let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
 
-    let mut remain = name.iter().peekable();
+    let mut remain = name.into_iter().peekable();
 
     loop {
         let mut v = Vec::new();
         match remain.peek() {
-            Some(&&r) if begin_ok(char::from(r)) => {
+            Some(&r) if begin_ok(char::from(r)) => {
                 loop {
                     match remain.peek() {
-                        Some(&&r) if within_ok(char::from(r)) => {
+                        Some(&r) if within_ok(char::from(r)) => {
                             v.push(r);
                             remain.next();
                         },
@@ -56,7 +58,7 @@ pub fn mangle(name : &[u8]) -> String {
             Some(_) => {
                 loop {
                     match remain.peek() {
-                        Some(&&r) if !begin_ok(char::from(r)) => {
+                        Some(&r) if !begin_ok(char::from(r)) => {
                             v.push(r);
                             remain.next();
                         },
@@ -152,7 +154,7 @@ fn test_round_trip() {
         let len = norm.sample(&mut rng) as usize;
         let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
 
-        assert_eq!(rs, demangle(&mangle(&rs.as_ref())).unwrap());
+        assert_eq!(rs, demangle(&mangle(rs.clone())).unwrap()); // TODO obviate .clone() here
     }
 }
 
