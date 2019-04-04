@@ -28,7 +28,7 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 #[test]
 fn test_mangle() -> Result<()> {
     for (unmangled, mangled) in MANGLE_LIST {
-        assert_eq!(&mangle(unmangled.bytes())?, mangled);
+        assert_eq!(&mangle(unmangled.bytes()).expect("failed to mangle"), mangled);
     }
     Ok(())
 }
@@ -118,7 +118,7 @@ impl Error for MangleError {
 #[test]
 fn test_demangle() -> Result<()> {
     for (unmangled, mangled) in MANGLE_LIST {
-        let got : Vec<u8> = demangle(mangled)?;
+        let got : Vec<u8> = demangle(mangled).unwrap();
         let want : Vec<u8> = unmangled.to_owned().to_string().into();
         assert_eq!(want, got);
     }
@@ -171,7 +171,7 @@ fn test_round_trip() -> Result<()> {
         let len = norm.sample(&mut rng) as usize;
         let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
 
-        assert_eq!(rs, demangle(&mangle(rs.clone())?)?); // TODO obviate .clone() here
+        assert_eq!(rs, demangle(&mangle(rs.clone()).expect("failed to mangle")).expect("failed to demangle")); // TODO obviate .clone() here
     }
     Ok(())
 }
