@@ -31,48 +31,54 @@ fn test_mangle() {
 pub fn mangle<T>(name : T) -> String
     where T : IntoIterator<Item=u8>
 {
-    let mut out = String::new();
-
-    out.push('_');
-
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
     let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
 
-    let mut remain = name.into_iter().peekable();
+    use std::rc::Rc;
+    use std::cell::Cell;
 
-    loop {
-        let mut v = Vec::new();
-        match remain.peek() {
-            Some(&r) if begin_ok(char::from(r)) => {
-                loop {
-                    match remain.peek() {
-                        Some(&r) if within_ok(char::from(r)) => {
-                            v.push(r);
-                            remain.next();
-                        },
-                        _ => break,
-                    }
-                }
-                out.push_str(&format!("{}{}", v.len(), String::from_utf8(v).unwrap()));
-            },
-            Some(_) => {
-                loop {
-                    match remain.peek() {
-                        Some(&r) if !begin_ok(char::from(r)) => {
-                            v.push(r);
-                            remain.next();
-                        },
-                        _ => break,
-                    }
-                }
-                out.push_str(&format!("0{}_{}", v.len(), hexify(v)));
-            },
-            _ => {
-                out.shrink_to_fit();
-                return out;
-            }
-        }
-    }
+    #[derive(Copy,Clone,Debug)]
+    enum What { Invalid, Word, NonWord }
+    #[derive(Copy,Clone,Debug)]
+    enum How { Initial, Begin, Continue }
+    type Many = Rc<Cell<usize>>;
+
+    let start = (What::Invalid, How::Initial, Rc::new(Cell::new(0)));
+    // For now, we need to collect into a vector so that Rc<> pointers are viewed after all updates
+    // have occurred, rather than just as they are created.
+    let result : Vec<_> = name.into_iter().scan(start, |st : &mut (What, How, Many), item| {
+            use What::*;
+            use How::*;
+            let ch = char::from(item);
+            let counter = &st.2;
+            *st = match (&*st, begin_ok(ch), within_ok(ch)) {
+                ((Word,    ..), _, true ) => (Word   , Continue, { let c = Rc::clone(&counter); c.set(c.get() + 1); c }),
+                ((NonWord, ..), _, false) => (NonWord, Continue, { let c = Rc::clone(&counter); c.set(c.get() + 1); c }),
+
+                (_, true , _)             => (Word   , Begin, Rc::new(Cell::new(1))),
+                (_, false, _)             => (NonWord, Begin, Rc::new(Cell::new(1))),
+            };
+            Some((st.clone(), item))
+        }).collect();
+
+    let result = result.into_iter()
+        .fold(vec!['_' as u8], |mut vec, ((what, how, count), ch)| {
+            use What::*;
+            use How::*;
+            match (what, how) {
+                (Word   , Begin) => vec.extend(format!( "{}" , count.get()).bytes()),
+                (NonWord, Begin) => vec.extend(format!("0{}_", count.get()).bytes()),
+                _ => {},
+            };
+            match what {
+                Word    => vec.push(ch),
+                NonWord => vec.extend(hexify(std::iter::once(ch)).bytes()),
+                _ => panic!("bad state"),
+            };
+            vec
+        });
+
+    String::from_utf8(result).unwrap()
 }
 
 use std::error::Error;
