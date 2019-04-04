@@ -65,8 +65,13 @@ pub fn mangle<T>(name : T) -> Result<String>
             Some((st.clone(), item))
         }).collect();
 
+    let out = {
+        let mut out = Vec::with_capacity(result.len() * 2); // heuristic
+        out.push('_' as u8);
+        out
+    };
     let result = result.into_iter()
-        .try_fold(vec!['_' as u8], |mut vec, ((what, how, count), ch)| {
+        .try_fold(out, |mut vec, ((what, how, count), ch)| {
             use What::*;
             use How::*;
             match (what, how) {
@@ -82,7 +87,12 @@ pub fn mangle<T>(name : T) -> Result<String>
             Ok(vec)
         });
 
-    String::from_utf8(result?).map_err(|e| e.into())
+    let result = {
+        let mut r = result?;
+        r.shrink_to_fit();
+        r
+    };
+    String::from_utf8(result).map_err(|e| e.into())
 }
 
 #[derive(Debug)]
