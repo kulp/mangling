@@ -131,7 +131,7 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
             return Ok(());
         } else if let Some((not_num, _)) = name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
             let (num_str, new_name) = name.split_at(not_num);
-            let len = usize::from_str(num_str).unwrap();
+            let len = usize::from_str(num_str)?;
 
             if &name[..1] == "0" {
                 if &new_name[..1] != "_" {
@@ -161,7 +161,7 @@ fn test_round_trip() -> Result<()> {
         let len = norm.sample(&mut rng) as usize;
         let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
 
-        assert_eq!(rs, demangle(&mangle(rs.clone())?).unwrap()); // TODO obviate .clone() here
+        assert_eq!(rs, demangle(&mangle(rs.clone())?)?); // TODO obviate .clone() here
     }
     Ok(())
 }
