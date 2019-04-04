@@ -75,7 +75,7 @@ pub fn mangle<T>(name : T) -> Result<String>
             use What::*;
             use How::*;
             match (what, how) {
-                (Word   , Begin) => vec.extend(format!( "{}" , count.get()).bytes()),
+                (Word   , Begin) => vec.extend(count.get().to_string().bytes()),
                 (NonWord, Begin) => vec.extend(format!("0{}_", count.get()).bytes()),
                 _ => {},
             };
