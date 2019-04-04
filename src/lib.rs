@@ -76,7 +76,7 @@ pub fn mangle<T>(name : T) -> Result<String>
             };
             match what {
                 Word    => vec.push(ch),
-                NonWord => vec.extend(hexify(std::iter::once(ch)).bytes()),
+                NonWord => vec.extend(hexify(ch)),
                 _ => return Err(Box::new(MangleError::new("Bad state encountered during mangle"))),
             };
             Ok(vec)
@@ -166,10 +166,8 @@ fn test_round_trip() -> Result<()> {
     Ok(())
 }
 
-fn hexify<T>(bytes : T) -> String
-    where T : IntoIterator<Item=u8>
-{
-    bytes.into_iter().map(|b| format!("{:02x}", &b)).collect::<Vec<_>>().concat()
+fn hexify(byte : u8) -> Vec<u8> {
+    format!("{:02x}", byte).into_bytes()
 }
 
 fn dehexify(s : &str) -> Result<Vec<u8>> {
