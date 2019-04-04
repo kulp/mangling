@@ -7,6 +7,9 @@ use rand::{thread_rng, Rng};
 
 use std::str::FromStr;
 
+use std::error::Error;
+type Result<T> = std::result::Result<T, Box<Error>>;
+
 #[cfg(test)]
 const MANGLE_LIST : &[(&str, &str)] = &[
     ( "()V"                        , "_02_28291V"                                            ),
@@ -22,13 +25,14 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 ];
 
 #[test]
-fn test_mangle() {
+fn test_mangle() -> Result<()> {
     for (unmangled, mangled) in MANGLE_LIST {
-        assert_eq!(&mangle(unmangled.bytes()), mangled);
+        assert_eq!(&mangle(unmangled.bytes())?, mangled);
     }
+    Ok(())
 }
 
-pub fn mangle<T>(name : T) -> String
+pub fn mangle<T>(name : T) -> Result<String>
     where T : IntoIterator<Item=u8>
 {
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
@@ -62,7 +66,7 @@ pub fn mangle<T>(name : T) -> String
         }).collect();
 
     let result = result.into_iter()
-        .fold(vec!['_' as u8], |mut vec, ((what, how, count), ch)| {
+        .try_fold(vec!['_' as u8], |mut vec, ((what, how, count), ch)| {
             use What::*;
             use How::*;
             match (what, how) {
@@ -73,16 +77,13 @@ pub fn mangle<T>(name : T) -> String
             match what {
                 Word    => vec.push(ch),
                 NonWord => vec.extend(hexify(std::iter::once(ch)).bytes()),
-                _ => panic!("bad state"),
+                _ => return Err(Box::new(MangleError::new("Bad state encountered during mangle"))),
             };
-            vec
+            Ok(vec)
         });
 
-    String::from_utf8(result).unwrap()
+    String::from_utf8(result?).map_err(|e| e.into())
 }
-
-use std::error::Error;
-type Result<T> = std::result::Result<T, Box<Error>>;
 
 #[derive(Debug)]
 pub struct MangleError(String);
@@ -153,15 +154,16 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
 }
 
 #[test]
-fn test_round_trip() {
+fn test_round_trip() -> Result<()> {
     let mut rng = thread_rng();
     let norm = Normal::new(20.0, 5.0);
     for _ in 1..10 {
         let len = norm.sample(&mut rng) as usize;
         let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
 
-        assert_eq!(rs, demangle(&mangle(rs.clone())).unwrap()); // TODO obviate .clone() here
+        assert_eq!(rs, demangle(&mangle(rs.clone())?).unwrap()); // TODO obviate .clone() here
     }
+    Ok(())
 }
 
 fn hexify<T>(bytes : T) -> String
