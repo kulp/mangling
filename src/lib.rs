@@ -5,9 +5,10 @@ use rand::distributions::{Distribution, Normal, Standard};
 #[cfg(test)]
 use rand::{thread_rng, Rng};
 
+use std::error::Error;
+use std::fmt;
 use std::str::FromStr;
 
-use std::error::Error;
 type Result<T> = std::result::Result<T, Box<Error>>;
 
 #[cfg(test)]
@@ -104,7 +105,6 @@ impl MangleError {
     }
 }
 
-use std::fmt;
 impl fmt::Display for MangleError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
