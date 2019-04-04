@@ -9,7 +9,7 @@ use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
 
-type Result<T> = std::result::Result<T, Box<Error>>;
+pub type Result<T> = std::result::Result<T, Box<Error>>;
 
 #[cfg(test)]
 const MANGLE_LIST : &[(&str, &str)] = &[
