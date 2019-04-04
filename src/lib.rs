@@ -63,7 +63,7 @@ pub fn mangle(name : &[u8]) -> String {
                         _ => break,
                     }
                 }
-                out.push_str(&format!("0{}_{}", v.len(), hexify(v.as_ref())));
+                out.push_str(&format!("0{}_{}", v.len(), hexify(v)));
             },
             _ => {
                 out.shrink_to_fit();
@@ -156,8 +156,10 @@ fn test_round_trip() {
     }
 }
 
-fn hexify(bytes : &[u8]) -> String {
-    bytes.iter().map(|b| format!("{:02x}", &b)).collect::<Vec<_>>().concat()
+fn hexify<T>(bytes : T) -> String
+    where T : IntoIterator<Item=u8>
+{
+    bytes.into_iter().map(|b| format!("{:02x}", &b)).collect::<Vec<_>>().concat()
 }
 
 fn dehexify(s : &str) -> Result<Vec<u8>> {
