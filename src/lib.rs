@@ -171,7 +171,7 @@ fn test_round_trip() -> Result<()> {
         let len = norm.sample(&mut rng) as usize;
         let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
 
-        assert_eq!(rs, demangle(&mangle(rs.clone()).expect("failed to mangle")).expect("failed to demangle")); // TODO obviate .clone() here
+        assert_eq!(rs, demangle(&mangle(rs.clone()).expect("failed to mangle")).expect("failed to demangle"));
     }
     Ok(())
 }
