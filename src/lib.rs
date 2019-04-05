@@ -68,7 +68,7 @@ pub fn mangle<T>(name : T) -> Result<String>
 
     let out = {
         let mut out = Vec::with_capacity(result.len() * 2); // heuristic
-        out.push('_' as u8);
+        out.push(b'_');
         out
     };
     let result = result.into_iter()
@@ -138,7 +138,7 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
 
     fn demangle_inner(mut out : &mut Vec<u8>, name : &str) -> Result<()> {
         if name.is_empty() {
-            return Ok(());
+            Ok(())
         } else if let Some((not_num, _)) = name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
             let (num_str, new_name) = name.split_at(not_num);
             let len = usize::from_str(num_str)?;
@@ -158,7 +158,7 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
                 demangle_inner(&mut out, after)
             }
         } else {
-            return Err(Box::new(MangleError::new("did not find a number")));
+            Err(Box::new(MangleError::new("did not find a number")))
         }
     }
 }
