@@ -118,7 +118,7 @@ impl Error for MangleError {
 #[test]
 fn test_demangle() -> Result<()> {
     for (unmangled, mangled) in MANGLE_LIST {
-        let got : Vec<u8> = demangle(mangled).unwrap();
+        let got : Vec<u8> = demangle(mangled).expect("failed to demangle");
         let want : Vec<u8> = unmangled.to_owned().to_string().into();
         assert_eq!(want, got);
     }
