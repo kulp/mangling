@@ -13,6 +13,8 @@ pub type Result<T> = std::result::Result<T, Box<Error>>;
 
 #[cfg(test)]
 const MANGLE_LIST : &[(&str, &str)] = &[
+    ( "123"                        , "_03_313233"                                            ),
+    ( "_123"                       , "_4_123"                                                ),
     ( "()V"                        , "_02_28291V"                                            ),
     ( "(II)I"                      , "_01_282II01_291I"                                      ),
     ( "<init>"                     , "_01_3c4init01_3e"                                      ),
@@ -58,7 +60,7 @@ pub fn mangle<T>(name : T) -> Result<String>
             let increment = || { let c = Rc::clone(&st.2); c.set(c.get() + 1); c };
             *st = match (&*st, begin_ok(ch), within_ok(ch)) {
                 ((Word,    ..), _, true ) => (Word   , Continue, increment() ),
-                ((NonWord, ..), _, false) => (NonWord, Continue, increment() ),
+                ((NonWord, ..), false, _) => (NonWord, Continue, increment() ),
 
                 (_, true , _)             => (Word   , Begin, Rc::new(Cell::new(1))),
                 (_, false, _)             => (NonWord, Begin, Rc::new(Cell::new(1))),
