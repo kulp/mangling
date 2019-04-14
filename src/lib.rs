@@ -95,7 +95,7 @@ pub fn mangle<T>(name : T) -> Result<String>
         r.shrink_to_fit();
         r
     };
-    String::from_utf8(result).map_err(|e| e.into())
+    String::from_utf8(result).map_err(Into::into)
 }
 
 #[derive(Debug)]
@@ -183,8 +183,8 @@ fn hexify(byte : u8) -> Vec<u8> {
 }
 
 fn dehexify(s : &str) -> Result<Vec<u8>> {
-    let stringify = |v| std::str::from_utf8(v).map_err::<Box<Error>,_>(|e| e.into());
-    let parse = |v| u8::from_str_radix(v?, 16).map_err(|e| e.into());
+    let stringify = |v| std::str::from_utf8(v).map_err::<Box<Error>,_>(Into::into);
+    let parse = |v| u8::from_str_radix(v?, 16).map_err(Into::into);
     s.as_bytes().chunks(2).map(stringify).map(parse).collect()
 }
 
