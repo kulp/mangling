@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 #[cfg(test)]
 use rand::distributions::{Distribution, Normal, Standard};
 #[cfg(test)]
