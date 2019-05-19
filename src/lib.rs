@@ -82,7 +82,7 @@ pub fn mangle<T>(name : T) -> Result<String>
             };
             match what {
                 Word    => vec.push(ch),
-                NonWord => vec.extend(hexify(ch)),
+                NonWord => vec.extend(&hexify(ch)),
                 _ => return Err(Box::new(MangleError::new("Bad state encountered during mangle"))),
             };
             Ok(vec)
@@ -176,8 +176,14 @@ fn test_round_trip() -> Result<()> {
     Ok(())
 }
 
-fn hexify(byte : u8) -> Vec<u8> {
-    format!("{:02x}", byte).into_bytes()
+fn hexify(byte : u8) -> [u8 ; 2] {
+    const HEX : [u8 ; 16] = [
+        b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'a', b'b', b'c', b'd', b'e', b'f'
+    ];
+    [
+        HEX[((byte & 0xf0) >> 4) as usize],
+        HEX[( byte & 0x0f      ) as usize],
+    ]
 }
 
 fn dehexify(s : &str) -> Result<Vec<u8>> {
