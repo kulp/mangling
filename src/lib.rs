@@ -4,7 +4,6 @@ use rand::distributions::{Distribution, Normal, Standard};
 use rand::{thread_rng, Rng};
 
 use std::error::Error;
-use std::fmt;
 use std::str::FromStr;
 
 pub type Result<T> = std::result::Result<T, Box<Error>>;
@@ -83,7 +82,7 @@ pub fn mangle<T>(name : T) -> Result<String>
             match what {
                 Word    => vec.push(ch),
                 NonWord => vec.extend(&hexify(ch)),
-                _ => return Err(Box::new(MangleError::new("Bad state encountered during mangle"))),
+                _ => return Err("Bad state encountered during mangle"),
             };
             Ok(vec)
         });
@@ -94,25 +93,6 @@ pub fn mangle<T>(name : T) -> Result<String>
         r
     };
     String::from_utf8(result).map_err(Into::into)
-}
-
-#[derive(Debug)]
-pub struct MangleError(String);
-
-impl MangleError {
-    fn new(msg : &str) -> MangleError {
-        MangleError(msg.to_string())
-    }
-}
-
-impl fmt::Display for MangleError {
-    fn fmt(&self, f : &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Error for MangleError {
-    fn description(&self) -> &str { &self.0 }
 }
 
 #[test]
@@ -129,7 +109,7 @@ fn test_demangle() -> Result<()> {
 
 pub fn demangle(name : &str) -> Result<Vec<u8>> {
     if &name[..1] != "_" {
-        return Err(Box::new(MangleError::new("Bad identifier (expected `_`)")));
+        return Err("Bad identifier (expected `_`)".into());
     } else {
         let mut out = Vec::with_capacity(name.len());
         demangle_inner(&mut out, &name[1..])?;
@@ -145,7 +125,7 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
 
             if &name[..1] == "0" {
                 if &new_name[..1] != "_" {
-                    return Err(Box::new(MangleError::new("Bad identifier (expected `_`)")));
+                    return Err("Bad identifier (expected `_`)".into());
                 }
                 let new_name = &new_name[1..];
                 let len = 2 * len;
@@ -158,7 +138,7 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
                 demangle_inner(&mut out, after)
             }
         } else {
-            Err(Box::new(MangleError::new("did not find a number")))
+            Err("did not find a number".into())
         }
     }
 }
