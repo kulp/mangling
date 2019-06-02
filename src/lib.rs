@@ -6,7 +6,7 @@ use rand::{thread_rng, Rng};
 use std::error::Error;
 use std::str::FromStr;
 
-pub type Result<T> = std::result::Result<T, Box<Error>>;
+pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[cfg(test)]
 const MANGLE_LIST : &[(&str, &str)] = &[
@@ -167,7 +167,7 @@ fn hexify(byte : u8) -> [u8 ; 2] {
 }
 
 fn dehexify(s : &str) -> Result<Vec<u8>> {
-    let stringify = |v| std::str::from_utf8(v).map_err::<Box<Error>,_>(Into::into);
+    let stringify = |v| std::str::from_utf8(v).map_err::<Box<dyn Error>,_>(Into::into);
     let parse = |v| u8::from_str_radix(v?, 16).map_err(Into::into);
     s.as_bytes().chunks(2).map(stringify).map(parse).collect()
 }
