@@ -135,11 +135,11 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
     }
 
     if &name[..1] != "_" {
-        return Err("Bad identifier (expected `_`)".into());
+        Err("Bad identifier (expected `_`)".into())
     } else {
         let mut out = Vec::with_capacity(name.len());
         demangle_inner(&mut out, &name[1..])?;
-        return Ok(out);
+        Ok(out)
     }
 }
 
