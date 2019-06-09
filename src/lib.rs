@@ -35,9 +35,6 @@ fn test_mangle() -> Result<()> {
 pub fn mangle<T>(name : T) -> Result<String>
     where T : IntoIterator<Item=u8>
 {
-    let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
-    let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
-
     use std::rc::Rc;
     use std::cell::Cell;
 
@@ -46,6 +43,9 @@ pub fn mangle<T>(name : T) -> Result<String>
     #[derive(Copy,Clone,Debug)]
     enum How { Initial, Begin, Continue }
     type Many = Rc<Cell<usize>>;
+
+    let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
+    let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
 
     let start = (What::Invalid, How::Initial, Rc::new(Cell::new(0)));
     // For now, we need to collect into a vector so that Rc<> pointers are viewed after all updates
@@ -108,14 +108,6 @@ fn test_demangle() -> Result<()> {
 }
 
 pub fn demangle(name : &str) -> Result<Vec<u8>> {
-    if &name[..1] != "_" {
-        return Err("Bad identifier (expected `_`)".into());
-    } else {
-        let mut out = Vec::with_capacity(name.len());
-        demangle_inner(&mut out, &name[1..])?;
-        return Ok(out);
-    }
-
     fn demangle_inner(mut out : &mut Vec<u8>, name : &str) -> Result<()> {
         if name.is_empty() {
             Ok(())
@@ -140,6 +132,14 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
         } else {
             Err("did not find a number".into())
         }
+    }
+
+    if &name[..1] != "_" {
+        return Err("Bad identifier (expected `_`)".into());
+    } else {
+        let mut out = Vec::with_capacity(name.len());
+        demangle_inner(&mut out, &name[1..])?;
+        return Ok(out);
     }
 }
 
