@@ -3,6 +3,9 @@ use rand::distributions::{Distribution, Normal, Standard};
 #[cfg(test)]
 use rand::{thread_rng, Rng};
 
+#[cfg(test)]
+use quickcheck::quickcheck;
+
 use std::error::Error;
 use std::str::FromStr;
 
@@ -140,6 +143,14 @@ pub fn demangle(name : &str) -> Result<Vec<u8>> {
         Ok(out)
     } else {
         Err("Bad identifier (expected `_`)".into())
+    }
+}
+
+#[cfg(test)]
+quickcheck! {
+    #[allow(clippy::result_unwrap_used)]
+    fn test_demangled_mangle(rs : Vec<u8>) -> bool {
+        rs == demangle(&mangle(rs.clone()).unwrap()).unwrap()
     }
 }
 
