@@ -10,8 +10,5 @@ license = "MIT"
 [badges]
 maintenance = { status = "experimental" }
 
-[dependencies]
-rand = "0.5"
-
 [dev-dependencies]
 quickcheck = "0.8"

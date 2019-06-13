@@ -1,9 +1,4 @@
 #[cfg(test)]
-use rand::distributions::{Distribution, Normal, Standard};
-#[cfg(test)]
-use rand::{thread_rng, Rng};
-
-#[cfg(test)]
 use quickcheck::quickcheck;
 
 use std::error::Error;
@@ -152,19 +147,6 @@ quickcheck! {
     fn test_demangled_mangle(rs : Vec<u8>) -> bool {
         rs == demangle(&mangle(rs.clone()).unwrap()).unwrap()
     }
-}
-
-#[test]
-fn test_round_trip() -> Result<()> {
-    let mut rng = thread_rng();
-    let norm = Normal::new(20.0, 5.0);
-    for _ in 1..10 {
-        let len = norm.sample(&mut rng) as usize;
-        let rs : Vec<u8> = rng.sample_iter(&Standard).take(len).collect();
-
-        assert_eq!(rs, demangle(&mangle(rs.clone())?)?);
-    }
-    Ok(())
 }
 
 fn hexify(byte : u8) -> [u8 ; 2] {
