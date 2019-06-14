@@ -54,8 +54,8 @@ pub fn mangle<T>(name : T) -> Result<String>
             let ch = char::from(item);
             let increment = || { let c = Rc::clone(&st.2); c.set(c.get() + 1); c };
             *st = match (&*st, begin_ok(ch), within_ok(ch)) {
-                ((Word,    ..), _, true ) => (Word   , Continue, increment() ),
-                ((NonWord, ..), false, _) => (NonWord, Continue, increment() ),
+                ((Word,    ..), _, true ) => (Word   , Continue, increment()),
+                ((NonWord, ..), false, _) => (NonWord, Continue, increment()),
 
                 (_, true , _)             => (Word   , Begin, Rc::new(Cell::new(1))),
                 (_, false, _)             => (NonWord, Begin, Rc::new(Cell::new(1))),
