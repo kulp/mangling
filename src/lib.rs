@@ -4,7 +4,7 @@ use quickcheck::quickcheck;
 use std::error::Error;
 use std::str::FromStr;
 
-pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub type ManglingResult<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[cfg(test)]
 const MANGLE_LIST : &[(&str, &str)] = &[
@@ -23,14 +23,14 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 ];
 
 #[test]
-fn test_mangle() -> Result<()> {
+fn test_mangle() -> ManglingResult<()> {
     for (unmangled, mangled) in MANGLE_LIST {
         assert_eq!(&mangle(unmangled.bytes())?, mangled);
     }
     Ok(())
 }
 
-pub fn mangle<T>(name : T) -> Result<String>
+pub fn mangle<T>(name : T) -> ManglingResult<String>
     where T : IntoIterator<Item=u8>
 {
     use std::rc::Rc;
@@ -94,7 +94,7 @@ pub fn mangle<T>(name : T) -> Result<String>
 }
 
 #[test]
-fn test_demangle() -> Result<()> {
+fn test_demangle() -> ManglingResult<()> {
     for (unmangled, mangled) in MANGLE_LIST {
         let got : Vec<u8> = demangle(mangled)?;
         let want : Vec<u8> = unmangled.to_owned().to_string().into();
@@ -105,8 +105,8 @@ fn test_demangle() -> Result<()> {
     Ok(())
 }
 
-pub fn demangle(name : &str) -> Result<Vec<u8>> {
-    fn demangle_inner(mut out : &mut Vec<u8>, name : &str) -> Result<()> {
+pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
+    fn demangle_inner(mut out : &mut Vec<u8>, name : &str) -> ManglingResult<()> {
         if name.is_empty() {
             Ok(())
         } else if let Some((not_num, _)) = name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
@@ -159,7 +159,7 @@ fn hexify(byte : u8) -> [u8 ; 2] {
     ]
 }
 
-fn dehexify(s : &str) -> Result<Vec<u8>> {
+fn dehexify(s : &str) -> ManglingResult<Vec<u8>> {
     let stringify = |v| std::str::from_utf8(v).map_err::<Box<dyn Error>,_>(Into::into);
     let parse = |v| u8::from_str_radix(v?, 16).map_err(Into::into);
     s.as_bytes().chunks(2).map(stringify).map(parse).collect()
