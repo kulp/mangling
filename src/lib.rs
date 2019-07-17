@@ -30,9 +30,7 @@ fn test_mangle() -> ManglingResult<()> {
     Ok(())
 }
 
-pub fn mangle<T>(name : T) -> ManglingResult<String>
-    where T : IntoIterator<Item=u8>
-{
+pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     use std::rc::Rc;
     use std::cell::Cell;
 
