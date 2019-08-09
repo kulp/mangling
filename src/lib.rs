@@ -8,6 +8,7 @@ pub type ManglingResult<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[cfg(test)]
 const MANGLE_LIST : &[(&str, &str)] = &[
+    ( ""                           , "_"                                                     ),
     ( "123"                        , "_03_313233"                                            ),
     ( "_123"                       , "_4_123"                                                ),
     ( "()V"                        , "_02_28291V"                                            ),
