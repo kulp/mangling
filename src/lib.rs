@@ -20,6 +20,19 @@
 //!
 //! Note that despite the description above, the current implementation does not
 //! actually use regular expressions for matching.
+//!
+//! For example:
+//! ```
+//! # use mangling;
+//! let input = "abc/123x".as_bytes();
+//! let expect = "_3abc04_2f3132331x";
+//!
+//! let output = mangling::mangle(input.to_vec()).unwrap();
+//! assert_eq!(output, expect);
+//!
+//! let reverse = mangling::demangle(expect).unwrap();
+//! assert_eq!(reverse, input);
+//! ```
 #[cfg(test)]
 use quickcheck::quickcheck;
 
