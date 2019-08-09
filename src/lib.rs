@@ -1,9 +1,32 @@
+//! This module provides for converting arbitrary byte streams into valid
+//! C-language identifiers and back again.
+//!
+//! The resulting symbol begins with an underscore character `_`, and is
+//! followed by zero or more groups of two types: printables and non-printables.
+//! The content of the input byte stream determines which type of group comes
+//! first, after which the two types alternate strictly.
+//!
+//! - A printable group corresponds to the longest substring of the input that
+//! can be consumed while matching the (case-insensitive) regular expression
+//! `[a-z][a-z0-9_]*`. The mangled form is `Naaa` where `N` is the unbounded
+//! decimal length of the substring in the original input, and `aaa` is the
+//! literal substring.
+//! - A non-printable group represents the shortest substring in the input that
+//! can be consumed before a printable substring begins to match. The mangled
+//! form is `0N_xxxxxx` where `0` and `_` are literal, `N` is the unbounded
+//! decimal length of the substring in the original input, and `xxxxxx` is the
+//! lowercase hexadecimal expansion of the original bytes (two hexadecimal
+//! digits per input byte, most significant nybble first).
+//!
+//! Note that despite the description above, the current implementation does not
+//! actually use regular expressions for matching.
 #[cfg(test)]
 use quickcheck::quickcheck;
 
 use std::error::Error;
 use std::str::FromStr;
 
+/// A generic Result type for functions in this module
 pub type ManglingResult<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[cfg(test)]
@@ -31,6 +54,8 @@ fn test_mangle() -> ManglingResult<()> {
     Ok(())
 }
 
+/// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
+/// use as an identifier in the C language.
 pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     use std::rc::Rc;
     use std::cell::Cell;
@@ -104,6 +129,13 @@ fn test_demangle() -> ManglingResult<()> {
     Ok(())
 }
 
+/// Takes a string slice corresponding to a symbol as converted by the `mangle`
+/// function, and returns a vector of bytes corresponding to the original input
+/// to the `mangle` function.
+///
+/// # Failures
+/// An `Err` result will be returned if the input is not exactly a validly
+/// mangled symbol, in its entirety and nothing more.
 pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
     fn demangle_inner(mut out : &mut Vec<u8>, name : &str) -> ManglingResult<()> {
         if name.is_empty() {
