@@ -208,4 +208,3 @@ fn dehexify(s : &str) -> ManglingResult<Vec<u8>> {
     let parse = |v| u8::from_str_radix(v?, 16).map_err(Into::into);
     s.as_bytes().chunks(2).map(stringify).map(parse).collect()
 }
-
