@@ -73,10 +73,18 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     use std::rc::Rc;
     use std::cell::Cell;
 
-    #[derive(Copy,Clone,Debug)]
-    enum What { Invalid, Word, NonWord }
-    #[derive(Copy,Clone,Debug)]
-    enum How { Initial, Begin, Continue }
+    #[derive(Copy, Clone, Debug)]
+    enum What {
+        Invalid,
+        Word,
+        NonWord,
+    }
+    #[derive(Copy, Clone, Debug)]
+    enum How {
+        Initial,
+        Begin,
+        Continue,
+    }
     type Many = Rc<Cell<usize>>;
 
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
@@ -107,8 +115,8 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     };
     let result = result.into_iter()
         .try_fold(out, |mut vec, ((what, how, count), ch)| {
-            use What::*;
             use How::*;
+            use What::*;
             match (what, how) {
                 (Word   , Begin) => vec.extend(count.get().to_string().bytes()),
                 (NonWord, Begin) => vec.extend(format!("0{}_", count.get()).bytes()),
