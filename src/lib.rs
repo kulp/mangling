@@ -215,7 +215,7 @@ fn dehexify(string : &str) -> ManglingResult<Vec<u8>> {
     string
         .as_bytes()
         .chunks(2)
-        .map(|v| std::str::from_utf8(v).map_err::<Box<dyn Error>,_>(Into::into))
+        .map(|v| std::str::from_utf8(v))
         .map(|v| u8::from_str_radix(v?, 16).map_err(Into::into))
         .collect()
 }
