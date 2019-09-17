@@ -211,8 +211,11 @@ fn hexify(byte : u8) -> [u8 ; 2] {
     ]
 }
 
-fn dehexify(s : &str) -> ManglingResult<Vec<u8>> {
-    let stringify = |v| std::str::from_utf8(v).map_err::<Box<dyn Error>,_>(Into::into);
-    let parse = |v| u8::from_str_radix(v?, 16).map_err(Into::into);
-    s.as_bytes().chunks(2).map(stringify).map(parse).collect()
+fn dehexify(string : &str) -> ManglingResult<Vec<u8>> {
+    string
+        .as_bytes()
+        .chunks(2)
+        .map(|v| std::str::from_utf8(v).map_err::<Box<dyn Error>,_>(Into::into))
+        .map(|v| u8::from_str_radix(v?, 16).map_err(Into::into))
+        .collect()
 }
