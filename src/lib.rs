@@ -115,16 +115,14 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     };
     let result = result.into_iter()
         .try_fold(out, |mut vec, ((what, how, count), ch)| {
-            use How::*;
-            use What::*;
             match (what, how) {
-                (Word   , Begin) => vec.extend(count.get().to_string().bytes()),
-                (NonWord, Begin) => vec.extend(format!("0{}_", count.get()).bytes()),
+                (What::Word   , How::Begin) => vec.extend(count.get().to_string().bytes()),
+                (What::NonWord, How::Begin) => vec.extend(format!("0{}_", count.get()).bytes()),
                 _ => {},
             };
             match what {
-                Word    => vec.push(ch),
-                NonWord => vec.extend(&hexify(ch)),
+                What::Word    => vec.push(ch),
+                What::NonWord => vec.extend(&hexify(ch)),
                 _ => return Err("Bad state encountered during mangle"),
             };
             Ok(vec)
