@@ -128,12 +128,7 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
             Ok(vec)
         });
 
-    let result = {
-        let mut r = result?;
-        r.shrink_to_fit();
-        r
-    };
-    String::from_utf8(result).map_err(Into::into)
+    String::from_utf8(result?).map_err(Into::into)
 }
 
 #[test]
