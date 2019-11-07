@@ -81,16 +81,15 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     }
     #[derive(Copy, Clone, Debug)]
     enum How {
-        Initial,
+        NotBegin,
         Begin,
-        Continue,
     }
     type Many = Rc<Cell<usize>>;
 
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
     let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
 
-    let start = (What::Invalid, How::Initial, Rc::new(Cell::new(0)));
+    let start = (What::Invalid, How::NotBegin, Rc::new(Cell::new(0)));
     // For now, we need to collect into a vector so that Rc<> pointers are viewed after all updates
     // have occurred, rather than just as they are created.
     let result : Vec<_> = name.into_iter().scan(start, |st : &mut (What, How, Many), item| {
@@ -99,8 +98,8 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
             let ch = char::from(item);
             let increment = || { let c = Rc::clone(&st.2); c.set(c.get() + 1); c };
             *st = match (st.0, begin_ok(ch), within_ok(ch)) {
-                (Word   , _    , true ) => (Word   , Continue, increment()),
-                (NonWord, false, _    ) => (NonWord, Continue, increment()),
+                (Word   , _    , true ) => (Word   , NotBegin, increment()),
+                (NonWord, false, _    ) => (NonWord, NotBegin, increment()),
 
                 (_, true , _)           => (Word   , Begin, Rc::new(Cell::new(1))),
                 (_, false, _)           => (NonWord, Begin, Rc::new(Cell::new(1))),
