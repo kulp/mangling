@@ -27,7 +27,7 @@
 //! let input = "abc/123x".as_bytes();
 //! let expect = "_3abc04_2f3132331x";
 //!
-//! let output = mangling::mangle(input.to_vec()).unwrap();
+//! let output = mangling::mangle(input.to_vec());
 //! assert_eq!(output, expect);
 //!
 //! let reverse = mangling::demangle(expect).unwrap();
@@ -60,16 +60,15 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 ];
 
 #[test]
-fn test_mangle() -> ManglingResult<()> {
+fn test_mangle() {
     for (unmangled, mangled) in MANGLE_LIST {
-        assert_eq!(&mangle(unmangled.bytes())?, mangled);
+        assert_eq!(&mangle(unmangled.bytes()), mangled);
     }
-    Ok(())
 }
 
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
 /// use as an identifier in the C language.
-pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
+pub fn mangle(name : impl IntoIterator<Item=u8>) -> String {
     use std::rc::Rc;
     use std::cell::Cell;
 
@@ -116,7 +115,7 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     // This unsafe block is demonstrated safe because our constructed Vec contains only bytes which
     // either match is_ascii_alphabetic or is_ascii_digit, or which are the result of converting to
     // hexadecimal.
-    unsafe { ManglingResult::Ok(String::from_utf8_unchecked(result)) }
+    unsafe { String::from_utf8_unchecked(result) }
 }
 
 #[test]
@@ -178,7 +177,7 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
 quickcheck! {
     #[allow(clippy::result_unwrap_used)]
     fn test_demangled_mangle(rs : Vec<u8>) -> bool {
-        rs == demangle(&mangle(rs.clone()).unwrap()).unwrap()
+        rs == demangle(&mangle(rs.clone())).unwrap()
     }
 }
 
