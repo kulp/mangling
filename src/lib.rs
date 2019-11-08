@@ -84,12 +84,11 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     let result : Vec<_> = name.into_iter().scan(start, |st : &mut (Option<bool>, bool, Many), item| {
             let ch = char::from(item);
             let increment = || { let c = Rc::clone(&st.2); c.set(c.get() + 1); c };
+            let switch = || Rc::new(Cell::new(1));
             *st = match (st.0, begin_ok(ch), within_ok(ch)) {
-                (Some(true) , _    , true ) => (Some(true) , false, increment()),
-                (Some(false), false, _    ) => (Some(false), false, increment()),
-
-                (_, true , _)               => (Some(true) , true, Rc::new(Cell::new(1))),
-                (_, false, _)               => (Some(false), true, Rc::new(Cell::new(1))),
+                (Some(tf @ true) , _    , true) |
+                (Some(tf @ false), false, _   ) => (Some(tf), false, increment()),
+                (_               , tf   , _   ) => (Some(tf), true , switch()   ),
             };
             Some((st.clone(), item))
         }).collect();
