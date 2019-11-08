@@ -100,13 +100,13 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
         out
     };
     let result = result.into_iter()
-        .try_fold(out, |mut vec, ((what, how, count), ch)| {
-            match (what, how) {
+        .try_fold(out, |mut vec, ((wordlike, beginning, count), ch)| {
+            match (wordlike, beginning) {
                 (Some(true) , true) => vec.extend(count.get().to_string().bytes()),
                 (Some(false), true) => vec.extend(format!("0{}_", count.get()).bytes()),
                 _ => {},
             };
-            match what {
+            match wordlike {
                 Some(true)  => vec.push(ch),
                 Some(false) => vec.extend(&hexify(ch)),
                 _ => return Err("Bad state encountered during mangle"),
