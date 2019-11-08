@@ -79,30 +79,24 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
         Word,
         NonWord,
     }
-    #[derive(Copy, Clone, Debug)]
-    enum How {
-        NotBegin,
-        Begin,
-    }
     type Many = Rc<Cell<usize>>;
 
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
     let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
 
-    let start = (What::Invalid, How::NotBegin, Rc::new(Cell::new(0)));
+    let start = (What::Invalid, true, Rc::new(Cell::new(0)));
     // For now, we need to collect into a vector so that Rc<> pointers are viewed after all updates
     // have occurred, rather than just as they are created.
-    let result : Vec<_> = name.into_iter().scan(start, |st : &mut (What, How, Many), item| {
+    let result : Vec<_> = name.into_iter().scan(start, |st : &mut (What, bool, Many), item| {
             use What::*;
-            use How::*;
             let ch = char::from(item);
             let increment = || { let c = Rc::clone(&st.2); c.set(c.get() + 1); c };
             *st = match (st.0, begin_ok(ch), within_ok(ch)) {
-                (Word   , _    , true ) => (Word   , NotBegin, increment()),
-                (NonWord, false, _    ) => (NonWord, NotBegin, increment()),
+                (Word   , _    , true ) => (Word   , false, increment()),
+                (NonWord, false, _    ) => (NonWord, false, increment()),
 
-                (_, true , _)           => (Word   , Begin, Rc::new(Cell::new(1))),
-                (_, false, _)           => (NonWord, Begin, Rc::new(Cell::new(1))),
+                (_, true , _)           => (Word   , true, Rc::new(Cell::new(1))),
+                (_, false, _)           => (NonWord, true, Rc::new(Cell::new(1))),
             };
             Some((st.clone(), item))
         }).collect();
@@ -115,8 +109,8 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
     let result = result.into_iter()
         .try_fold(out, |mut vec, ((what, how, count), ch)| {
             match (what, how) {
-                (What::Word   , How::Begin) => vec.extend(count.get().to_string().bytes()),
-                (What::NonWord, How::Begin) => vec.extend(format!("0{}_", count.get()).bytes()),
+                (What::Word   , true) => vec.extend(count.get().to_string().bytes()),
+                (What::NonWord, true) => vec.extend(format!("0{}_", count.get()).bytes()),
                 _ => {},
             };
             match what {
