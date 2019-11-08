@@ -113,7 +113,10 @@ pub fn mangle(name : impl IntoIterator<Item=u8>) -> ManglingResult<String> {
             vec
         });
 
-    String::from_utf8(result).map_err(Into::into)
+    // This unsafe block is demonstrated safe because our constructed Vec contains only bytes which
+    // either match is_ascii_alphabetic or is_ascii_digit, or which are the result of converting to
+    // hexadecimal.
+    unsafe { ManglingResult::Ok(String::from_utf8_unchecked(result)) }
 }
 
 #[test]
