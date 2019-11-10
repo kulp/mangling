@@ -68,9 +68,9 @@ fn test_mangle() {
 
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
 /// use as an identifier in the C language.
-pub fn mangle(name : impl IntoIterator<Item=u8>) -> String {
-    use std::rc::Rc;
+pub fn mangle(name : impl IntoIterator<Item = u8>) -> String {
     use std::cell::Cell;
+    use std::rc::Rc;
 
     type Many = Rc<Cell<usize>>;
 
