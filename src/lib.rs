@@ -175,10 +175,9 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
         }
     }
 
-    if name.is_empty() || &name[..1] != "_" {
-        Err("Bad identifier (expected `_`)".into())
-    } else {
-        demangle_inner(&name[1..], Vec::new())
+    match name.get(..1) {
+        Some("_") => demangle_inner(&name[1..], Vec::new()),
+        _ => Err("Bad identifier (expected `_`)".into()),
     }
 }
 
