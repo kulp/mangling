@@ -62,6 +62,9 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 #[cfg(test)]
 const DEMANGLE_BAD : &[&str] = &[
     "bad",
+    "_1",
+    "_0",
+    "_03x",
 ];
 
 #[test]
