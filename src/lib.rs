@@ -149,9 +149,9 @@ fn test_demangle() -> ManglingResult<()> {
 /// An `Err` result will be returned if the input is not exactly a validly
 /// mangled symbol, in its entirety and nothing more.
 pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
-    fn demangle_inner(mut out : &mut Vec<u8>, name : &str) -> ManglingResult<()> {
+    fn demangle_inner(name : &str, mut from : Vec<u8>) -> ManglingResult<Vec<u8>> {
         if name.is_empty() {
-            Ok(())
+            Ok(from)
         } else if let Some((not_num, _)) = name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
             let (num_str, new_name) = name.split_at(not_num);
             let len = usize::from_str(num_str)?;
@@ -163,17 +163,15 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
                     _          => (len, new_name, &|x| Ok(Vec::from(x))),
                 };
             let (before, after) = new_name.split_at(len);
-            out.append(&mut action(before)?);
-            demangle_inner(&mut out, after)
+            from.extend(action(before)?);
+            demangle_inner(after, from)
         } else {
             Err("did not find a number".into())
         }
     }
 
     if &name[..1] == "_" {
-        let mut out = Vec::with_capacity(name.len());
-        demangle_inner(&mut out, &name[1..])?;
-        Ok(out)
+        demangle_inner(&name[1..], Vec::new())
     } else {
         Err("Bad identifier (expected `_`)".into())
     }
