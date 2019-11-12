@@ -188,6 +188,14 @@ quickcheck! {
     fn test_demangled_mangle(rs : Vec<u8>) -> bool {
         rs == demangle(&mangle(rs.clone())).unwrap()
     }
+
+    fn test_demangled_corrupted(deletion : usize) -> () {
+        for (_, mangled) in MANGLE_LIST {
+            let (_, v) : (Vec<_>, Vec<_>) = mangled.chars().enumerate().filter(|&(i, _)| i != deletion % mangled.len()).unzip();
+            let m : String = v.into_iter().collect();
+            assert!(demangle(&m).is_err())
+        }
+    }
 }
 
 fn hexify(byte : u8) -> [u8 ; 2] {
