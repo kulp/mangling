@@ -162,9 +162,14 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
                     ("0", .. ) => return Err("Bad identifier (expected `_`)".into()),
                     _          => (len, new_name, &|x| Ok(Vec::from(x))),
                 };
-            let (before, after) = new_name.split_at(len);
-            from.extend(action(before)?);
-            demangle_inner(after, from)
+
+            if new_name.len() < len {
+                Err("string ended too soon".into())
+            } else {
+                let (before, after) = new_name.split_at(len);
+                from.extend(action(before)?);
+                demangle_inner(after, from)
+            }
         } else {
             Err("did not find a number".into())
         }
