@@ -156,20 +156,15 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
             let (num_str, new_name) = name.split_at(not_num);
             let len = usize::from_str(num_str)?;
 
-            if &name[..1] == "0" {
-                if &new_name[..1] != "_" {
-                    return Err("Bad identifier (expected `_`)".into());
-                }
-                let new_name = &new_name[1..];
-                let len = 2 * len;
-                let (before, after) = new_name.split_at(len);
-                out.append(&mut dehexify(before)?);
-                demangle_inner(&mut out, after)
-            } else {
-                let (before, after) = new_name.split_at(len);
-                out.append(&mut Vec::from(before));
-                demangle_inner(&mut out, after)
-            }
+            let (len, new_name, action) : (_, _, &dyn Fn(&str) -> ManglingResult<Vec<u8>>) =
+                match (&name[..1], &new_name[..1]) {
+                    ("0", "_") => (len * 2, &new_name[1..], &|x| dehexify(x)),
+                    ("0", .. ) => return Err("Bad identifier (expected `_`)".into()),
+                    _          => (len, new_name, &|x| Ok(Vec::from(x))),
+                };
+            let (before, after) = new_name.split_at(len);
+            out.append(&mut action(before)?);
+            demangle_inner(&mut out, after)
         } else {
             Err("did not find a number".into())
         }
