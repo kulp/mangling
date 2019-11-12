@@ -59,6 +59,11 @@ const MANGLE_LIST : &[(&str, &str)] = &[
     ( "java/lang/Object.<init>:()V", "_4java01_2f4lang01_2f6Object02_2e3c4init04_3e3a28291V" ),
 ];
 
+#[cfg(test)]
+const DEMANGLE_BAD : &[&str] = &[
+    "bad",
+];
+
 #[test]
 fn test_mangle() {
     for (unmangled, mangled) in MANGLE_LIST {
@@ -126,7 +131,10 @@ fn test_demangle() -> ManglingResult<()> {
         assert_eq!(want, got);
     }
 
-    assert!(demangle("bad").is_err());
+    for mangled in DEMANGLE_BAD {
+        assert!(demangle(mangled).is_err());
+    }
+
     Ok(())
 }
 
