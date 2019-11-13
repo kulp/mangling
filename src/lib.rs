@@ -202,6 +202,16 @@ fn hexify(byte : u8) -> [u8 ; 2] {
     [ hex(byte >> 4), hex(byte) ]
 }
 
+#[cfg(test)]
+quickcheck! {
+    #[allow(clippy::result_unwrap_used)]
+    fn test_hexify(byte : u8) -> () {
+        let got = hexify(byte);
+        let want = format!("{:02x}", byte);
+        assert_eq!(got, want.as_bytes());
+    }
+}
+
 fn dehexify(string : &str) -> ManglingResult<Vec<u8>> {
     string
         .as_bytes()
