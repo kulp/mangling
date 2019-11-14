@@ -43,6 +43,7 @@ use std::str::FromStr;
 pub type ManglingResult<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[cfg(test)]
+#[rustfmt::skip]
 const MANGLE_LIST : &[(&str, &str)] = &[
     ( ""                           , "_"                                                     ),
     ( "123"                        , "_03_313233"                                            ),
