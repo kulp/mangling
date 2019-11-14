@@ -99,14 +99,16 @@ pub fn mangle(name : impl IntoIterator<Item = u8>) -> String {
                 (_               , tf   , _   ) => (Some(tf), true , switch()   ),
             };
             Some((st.clone(), item))
-        }).collect();
+        })
+        .collect();
 
     let out = {
         let mut out = Vec::with_capacity(result.len() * 2); // heuristic
         out.push(b'_');
         out
     };
-    let result = result.into_iter()
+    let result = result
+        .into_iter()
         .fold(out, |mut vec, ((wordlike, beginning, count), ch)| {
             match (wordlike, beginning) {
                 (Some(true) , true) => vec.extend(count.get().to_string().bytes()),
@@ -200,7 +202,7 @@ quickcheck! {
 
 fn hexify(byte : u8) -> [u8 ; 2] {
     let hex = |b| match b & 0xf { c @ 0..=9 => b'0' + c, c => b'a' + c - 10 };
-    [ hex(byte >> 4), hex(byte) ]
+    [hex(byte >> 4), hex(byte)]
 }
 
 #[cfg(test)]
