@@ -61,12 +61,7 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 ];
 
 #[cfg(test)]
-const DEMANGLE_BAD : &[&str] = &[
-    "bad",
-    "_1",
-    "_0",
-    "_03x",
-];
+const DEMANGLE_BAD : &[&str] = &["bad", "_1", "_0", "_03x"];
 
 #[test]
 fn test_mangle() {
@@ -87,11 +82,18 @@ pub fn mangle(name : impl IntoIterator<Item = u8>) -> String {
     let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
 
     let start = (None, true, Rc::new(Cell::new(0))); // word v. nonword ; begin v. nonbegin ; count
+
     // For now, we need to collect into a vector so that Rc<> pointers are viewed after all updates
     // have occurred, rather than just as they are created.
-    let result : Vec<_> = name.into_iter().scan(start, |st : &mut (Option<bool>, bool, Many), item| {
+    let result : Vec<_> = name
+        .into_iter()
+        .scan(start, |st : &mut (Option<bool>, bool, Many), item| {
             let ch = char::from(item);
-            let increment = || { let c = Rc::clone(&st.2); c.set(c.get() + 1); c };
+            let increment = || {
+                let c = Rc::clone(&st.2);
+                c.set(c.get() + 1);
+                c
+            };
             let switch = || Rc::new(Cell::new(1));
             *st = match (st.0, begin_ok(ch), within_ok(ch)) {
                 (Some(tf @ true) , _    , true) |
@@ -111,12 +113,12 @@ pub fn mangle(name : impl IntoIterator<Item = u8>) -> String {
         .into_iter()
         .fold(out, |mut vec, ((wordlike, beginning, count), ch)| {
             match (wordlike, beginning) {
-                (Some(true) , true) => vec.extend(count.get().to_string().bytes()),
+                (Some(true), true) => vec.extend(count.get().to_string().bytes()),
                 (Some(false), true) => vec.extend(format!("0{}_", count.get()).bytes()),
                 _ => {},
             };
             match wordlike {
-                Some(true)  => vec.push(ch),
+                Some(true) => vec.push(ch),
                 Some(false) => vec.extend(&hexify(ch)),
                 None => unreachable!(), // fold will not iterate unless result has items
             };
@@ -155,15 +157,17 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
     fn demangle_inner(name : &str, mut from : Vec<u8>) -> ManglingResult<Vec<u8>> {
         if name.is_empty() {
             Ok(from)
-        } else if let Some((not_num, _)) = name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit()) {
+        } else if let Some((not_num, _)) =
+            name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit())
+        {
             let (num_str, new_name) = name.split_at(not_num);
             let len = usize::from_str(num_str)?;
 
             let (len, new_name, action) : (_, _, &dyn Fn(&str) -> ManglingResult<Vec<u8>>) =
                 match (&name[..1], &new_name[..1]) {
                     ("0", "_") => (len * 2, &new_name[1..], &|x| dehexify(x)),
-                    ("0", .. ) => return Err("Bad identifier (expected `_`)".into()),
-                    _          => (len, new_name, &|x| Ok(Vec::from(x))),
+                    ("0", ..) => return Err("Bad identifier (expected `_`)".into()),
+                    _ => (len, new_name, &|x| Ok(Vec::from(x))),
                 };
 
             if new_name.len() < len {
