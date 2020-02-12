@@ -135,7 +135,7 @@ pub fn mangle(name : impl IntoIterator<Item = u8>) -> String {
 fn test_demangle() -> ManglingResult<()> {
     for (unmangled, mangled) in MANGLE_LIST {
         let got : Vec<u8> = demangle(mangled)?;
-        let want : Vec<u8> = unmangled.to_string().into();
+        let want : Vec<u8> = (*unmangled).to_string().into();
         assert_eq!(want, got);
     }
 
