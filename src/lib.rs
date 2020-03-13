@@ -165,7 +165,7 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
 
             let (len, new_name, action) : (_, _, &dyn Fn(&str) -> ManglingResult<Vec<u8>>) =
                 match (&name[..1], &new_name[..1]) {
-                    ("0", "_") => (len * 2, &new_name[1..], &|x| dehexify(x)),
+                    ("0", "_") => (len * 2, &new_name[1..], &|x| dehexify(x.as_bytes())),
                     ("0", ..) => return Err("Bad identifier (expected `_`)".into()),
                     _ => (len, new_name, &|x| Ok(Vec::from(x))),
                 };
@@ -219,9 +219,8 @@ quickcheck! {
     }
 }
 
-fn dehexify(string : &str) -> ManglingResult<Vec<u8>> {
+fn dehexify(string : &[u8]) -> ManglingResult<Vec<u8>> {
     string
-        .as_bytes()
         .chunks(2)
         .map(|v| std::str::from_utf8(v))
         .map(|v| u8::from_str_radix(v?, 16).map_err(Into::into))
