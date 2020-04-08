@@ -176,12 +176,8 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
                     (_, [ rest @ .. ]) => (len, new_name, Cow::Borrowed(check(rest.get(..len))?)),
                 };
 
-            if new_name.len() < len {
-                Err("string ended too soon".into())
-            } else {
-                from.extend(next.as_ref());
-                demangle_inner(&new_name[len..], from)
-            }
+            from.extend(next.as_ref());
+            demangle_inner(check(new_name.get(len..))?, from)
         } else {
             Err("did not find a number".into())
         }
