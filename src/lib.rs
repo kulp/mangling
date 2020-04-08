@@ -160,6 +160,8 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
         } else if let Some((not_num, _)) =
             name.iter().enumerate().find(|(_, x)| !x.is_ascii_digit())
         {
+            use std::borrow::Cow;
+
             let (num_str, new_name) = name.split_at(not_num);
             let len = usize::from_str(core::str::from_utf8(num_str)?)?;
 
@@ -169,16 +171,16 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
             };
             let (len, new_name, next) =
                 match (name, new_name) {
-                    ([ b'0', .. ], [ b'_', hex @ .. ]) => (len * 2, &new_name[1..], dehexify(check(hex.get(..len * 2))?)?),
+                    ([ b'0', .. ], [ b'_', hex @ .. ]) => (len * 2, &new_name[1..], Cow::Owned(dehexify(check(hex.get(..len * 2))?)?)),
                     ([ b'0', .. ], ..) => return Err("Bad identifier (expected `_`)".into()),
-                    (_, [ rest @ .. ]) => (len, new_name, Vec::from(check(rest.get(..len))?)),
+                    (_, [ rest @ .. ]) => (len, new_name, Cow::Borrowed(check(rest.get(..len))?)),
                 };
 
             if new_name.len() < len {
                 Err("string ended too soon".into())
             } else {
                 let (_, after) = new_name.split_at(len);
-                from.extend(next);
+                from.extend(next.as_ref());
                 demangle_inner(after, from)
             }
         } else {
