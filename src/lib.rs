@@ -163,18 +163,22 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
             let (num_str, new_name) = name.split_at(not_num);
             let len = usize::from_str(num_str)?;
 
-            let (len, new_name, action) : (_, _, &dyn Fn(&str) -> ManglingResult<Vec<u8>>) =
-                match (&name[..1], &new_name[..1]) {
-                    ("0", "_") => (len * 2, &new_name[1..], &|x| dehexify(x.as_bytes())),
-                    ("0", ..) => return Err("Bad identifier (expected `_`)".into()),
-                    _ => (len, new_name, &|x| Ok(Vec::from(x))),
+            let check = |x| match x {
+                None => ManglingResult::Err("Input ended too soon".into()),
+                Some(y) => ManglingResult::Ok(y),
+            };
+            let (len, new_name, next) =
+                match (name.as_bytes(), new_name.as_bytes()) {
+                    ([ b'0', .. ], [ b'_', hex @ .. ]) => (len * 2, &new_name[1..], dehexify(check(hex.get(..len * 2))?)?),
+                    ([ b'0', .. ], ..) => return Err("Bad identifier (expected `_`)".into()),
+                    (_, [ rest @ .. ]) => (len, new_name, Vec::from(check(rest.get(..len))?)),
                 };
 
             if new_name.len() < len {
                 Err("string ended too soon".into())
             } else {
-                let (before, after) = new_name.split_at(len);
-                from.extend(action(before)?);
+                let (_, after) = new_name.split_at(len);
+                from.extend(next);
                 demangle_inner(after, from)
             }
         } else {
