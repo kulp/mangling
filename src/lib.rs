@@ -179,9 +179,8 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
             if new_name.len() < len {
                 Err("string ended too soon".into())
             } else {
-                let (_, after) = new_name.split_at(len);
                 from.extend(next.as_ref());
-                demangle_inner(after, from)
+                demangle_inner(&new_name[len..], from)
             }
         } else {
             Err("did not find a number".into())
