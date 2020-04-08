@@ -162,22 +162,22 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
         {
             use std::borrow::Cow;
 
-            let (num_str, new_name) = name.split_at(not_num);
+            let (num_str, name) = name.split_at(not_num);
             let len = usize::from_str(core::str::from_utf8(num_str)?)?;
 
             let check = |x| match x {
                 None => ManglingResult::Err("Input ended too soon".into()),
                 Some(y) => ManglingResult::Ok(y),
             };
-            let (len, new_name, next) =
-                match (name, new_name) {
-                    ([ b'0', .. ], [ b'_', hex @ .. ]) => (len * 2, &new_name[1..], Cow::Owned(dehexify(check(hex.get(..len * 2))?)?)),
+            let (len, remainder, piece) =
+                match (num_str, name) {
+                    ([ b'0', .. ], [ b'_', hex @ .. ]) => (len * 2, &hex[..], Cow::Owned(dehexify(check(hex.get(..len * 2))?)?)),
                     ([ b'0', .. ], ..) => return Err("Bad identifier (expected `_`)".into()),
-                    (_, [ rest @ .. ]) => (len, new_name, Cow::Borrowed(check(rest.get(..len))?)),
+                    (_, [ rest @ .. ]) => (len, rest, Cow::Borrowed(check(rest.get(..len))?)),
                 };
 
-            from.extend(next.as_ref());
-            demangle_inner(check(new_name.get(len..))?, from)
+            from.extend(piece.as_ref());
+            demangle_inner(check(remainder.get(len..))?, from)
         } else {
             Err("did not find a number".into())
         }
