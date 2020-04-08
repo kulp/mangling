@@ -154,21 +154,21 @@ fn test_demangle() -> ManglingResult<()> {
 /// An `Err` result will be returned if the input is not exactly a validly
 /// mangled symbol, in its entirety and nothing more.
 pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
-    fn demangle_inner(name : &str, mut from : Vec<u8>) -> ManglingResult<Vec<u8>> {
+    fn demangle_inner(name : &[u8], mut from : Vec<u8>) -> ManglingResult<Vec<u8>> {
         if name.is_empty() {
             Ok(from)
         } else if let Some((not_num, _)) =
-            name.chars().enumerate().find(|(_, x)| !x.is_ascii_digit())
+            name.iter().enumerate().find(|(_, x)| !x.is_ascii_digit())
         {
             let (num_str, new_name) = name.split_at(not_num);
-            let len = usize::from_str(num_str)?;
+            let len = usize::from_str(core::str::from_utf8(num_str)?)?;
 
             let check = |x| match x {
                 None => ManglingResult::Err("Input ended too soon".into()),
                 Some(y) => ManglingResult::Ok(y),
             };
             let (len, new_name, next) =
-                match (name.as_bytes(), new_name.as_bytes()) {
+                match (name, new_name) {
                     ([ b'0', .. ], [ b'_', hex @ .. ]) => (len * 2, &new_name[1..], dehexify(check(hex.get(..len * 2))?)?),
                     ([ b'0', .. ], ..) => return Err("Bad identifier (expected `_`)".into()),
                     (_, [ rest @ .. ]) => (len, new_name, Vec::from(check(rest.get(..len))?)),
@@ -187,7 +187,7 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
     }
 
     match name.get(..1) {
-        Some("_") => demangle_inner(&name[1..], Vec::new()),
+        Some("_") => demangle_inner(&name[1..].as_bytes(), Vec::new()),
         _ => Err("Bad identifier (expected `_`)".into()),
     }
 }
