@@ -156,6 +156,7 @@ fn test_demangle() -> ManglingResult<()> {
 pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
     fn demangle_inner(name : &[u8], mut from : Vec<u8>) -> ManglingResult<Vec<u8>> {
         if name.is_empty() {
+            from.shrink_to_fit();
             Ok(from)
         } else if let Some((not_num, _)) =
             name.iter().enumerate().find(|(_, x)| !x.is_ascii_digit())
