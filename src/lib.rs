@@ -169,14 +169,14 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
                 None => ManglingResult::Err("Input ended too soon".into()),
                 Some(y) => ManglingResult::Ok(y),
             };
-            let (remainder, piece) =
+            let (piece, remainder) =
                 match (num_str, name) {
-                    ([ b'0', .. ], [ b'_', hex @ .. ]) =>
-                        (check(hex.get(len * 2..))?, Cow::Owned(dehexify(check(hex.get(..len * 2))?)?)),
+                    ([ b'0', .. ], [ b'_', rest @ .. ]) =>
+                        (Cow::Owned(dehexify(check(rest.get(..len * 2))?)?), check(rest.get(len * 2..))?),
                     ([ b'0', .. ], ..) =>
                         return Err("Bad identifier (expected `_`)".into()),
                     (_, [ rest @ .. ]) =>
-                        (check(rest.get(len..))?, Cow::Borrowed(check(rest.get(..len))?)),
+                        (Cow::Borrowed(check(rest.get(..len))?), check(rest.get(len..))?),
                 };
 
             from.extend(piece.as_ref());
