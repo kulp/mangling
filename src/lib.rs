@@ -230,7 +230,7 @@ quickcheck! {
 fn dehexify(string : &[u8]) -> ManglingResult<Vec<u8>> {
     string
         .chunks(2)
-        .map(|v| std::str::from_utf8(v))
+        .map(std::str::from_utf8)
         .map(|v| u8::from_str_radix(v?, 16).map_err(Into::into))
         .collect()
 }
