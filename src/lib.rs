@@ -190,8 +190,8 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
         }
     }
 
-    match name.get(..1) {
-        Some("_") => demangle_inner(&name[1..].as_bytes(), Vec::new()),
+    match name.get(..).map(str::as_bytes) {
+        Some([ b'_', rest @ .. ]) => demangle_inner(rest, Vec::new()),
         _ => Err("Bad identifier (expected `_`)".into()),
     }
 }
