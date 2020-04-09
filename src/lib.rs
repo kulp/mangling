@@ -171,9 +171,12 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
             };
             let (remainder, piece) =
                 match (num_str, name) {
-                    ([ b'0', .. ], [ b'_', hex @ .. ]) => (check(hex.get(len * 2..))?, Cow::Owned(dehexify(check(hex.get(..len * 2))?)?)),
-                    ([ b'0', .. ], ..) => return Err("Bad identifier (expected `_`)".into()),
-                    (_, [ rest @ .. ]) => (check(rest.get(len..))?, Cow::Borrowed(check(rest.get(..len))?)),
+                    ([ b'0', .. ], [ b'_', hex @ .. ]) =>
+                        (check(hex.get(len * 2..))?, Cow::Owned(dehexify(check(hex.get(..len * 2))?)?)),
+                    ([ b'0', .. ], ..) =>
+                        return Err("Bad identifier (expected `_`)".into()),
+                    (_, [ rest @ .. ]) =>
+                        (check(rest.get(len..))?, Cow::Borrowed(check(rest.get(..len))?)),
                 };
 
             from.extend(piece.as_ref());
