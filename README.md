@@ -1,5 +1,7 @@
 # mangling
 
+![Rust](https://github.com/kulp/mangling/workflows/Rust/badge.svg)
+
 ## Purpose
 This library provides for reversibly generating identifiers (hereinafter "mangled names") that are valid under C-language rules, from arbitrary byte streams, while maintaining a measure of human readability.
 
