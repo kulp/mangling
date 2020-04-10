@@ -8,6 +8,7 @@ categories = ["development-tools", "encoding"]
 description = "mangling generates safe, recognizable identifiers from byte streams."
 repository = "https://github.com/kulp/mangling"
 license = "MIT"
+readme = "README.md"
 
 [badges]
 maintenance = { status = "experimental" }
