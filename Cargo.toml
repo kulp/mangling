@@ -14,4 +14,4 @@ readme = "README.md"
 maintenance = { status = "experimental" }
 
 [dev-dependencies]
-quickcheck = "0.8"
+quickcheck = "0.9"
