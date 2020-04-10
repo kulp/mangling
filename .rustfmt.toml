@@ -1,0 +1,7 @@
+# below are nightly-only args for now
+enum_discrim_align_threshold = 16
+fn_single_line = true
+format_macro_bodies = false
+match_block_trailing_comma = true
+space_before_colon = true
+struct_field_align_threshold = 8
