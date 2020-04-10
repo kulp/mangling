@@ -5,6 +5,7 @@ authors = ["Darren Kulp <darren@kulp.ch>"]
 edition = "2018"
 categories = ["development-tools"]
 description = "mangling generates safe, recognizable identifiers from byte streams."
+repository = "https://github.com/kulp/mangling"
 license = "MIT"
 
 [badges]
