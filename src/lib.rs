@@ -96,9 +96,10 @@ pub fn mangle(name : impl IntoIterator<Item = u8>) -> String {
             };
             let switch = || Rc::new(Cell::new(1));
             *st = match (st.0, begin_ok(ch), within_ok(ch)) {
-                (Some(tf @ true) , _    , true) |
-                (Some(tf @ false), false, _   ) => (Some(tf), false, increment()),
-                (_               , tf   , _   ) => (Some(tf), true , switch()   ),
+                (Some(tf @ true), _, true) | (Some(tf @ false), false, _) => {
+                    (Some(tf), false, increment())
+                },
+                (_, tf, _) => (Some(tf), true, switch()),
             };
             Some((st.clone(), item))
         })
@@ -166,19 +167,20 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
             let (num_str, name) = name.split_at(not_num);
             let len = usize::from_str(core::str::from_utf8(num_str)?)?;
 
-            let (piece, remainder) =
-                match (num_str, name) {
-                    ([ b'0', .. ], [ b'_', rest @ .. ]) => (
-                        rest.get(..len * 2).map(dehexify).transpose()?.map(Cow::Owned),
-                        rest.get(len * 2..).map(Cow::Borrowed),
-                    ),
-                    ([ b'0', .. ], ..) =>
-                        return Err("Bad identifier (expected `_`)".into()),
-                    (_, [ rest @ .. ]) => (
-                        rest.get(..len).map(Cow::Borrowed),
-                        rest.get(len..).map(Cow::Borrowed),
-                    ),
-                };
+            let (piece, remainder) = match (num_str, name) {
+                ([b'0', ..], [b'_', rest @ ..]) => (
+                    rest.get(..len * 2)
+                        .map(dehexify)
+                        .transpose()?
+                        .map(Cow::Owned),
+                    rest.get(len * 2..).map(Cow::Borrowed),
+                ),
+                ([b'0', ..], ..) => return Err("Bad identifier (expected `_`)".into()),
+                (_, [rest @ ..]) => (
+                    rest.get(..len).map(Cow::Borrowed),
+                    rest.get(len..).map(Cow::Borrowed),
+                ),
+            };
 
             let check = |x| match x {
                 None => ManglingResult::Err("Input ended too soon".into()),
@@ -192,7 +194,7 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
     }
 
     match name.get(..).map(str::as_bytes) {
-        Some([ b'_', rest @ .. ]) => demangle_inner(rest, Vec::with_capacity(rest.len())),
+        Some([b'_', rest @ ..]) => demangle_inner(rest, Vec::with_capacity(rest.len())),
         _ => Err("Bad identifier (expected `_`)".into()),
     }
 }
@@ -213,8 +215,11 @@ quickcheck! {
     }
 }
 
-fn hexify(byte : u8) -> [u8 ; 2] {
-    let hex = |b| match b & 0xf { c @ 0..=9 => b'0' + c, c => b'a' + c - 10 };
+fn hexify(byte : u8) -> [u8; 2] {
+    let hex = |b| match b & 0xf {
+        c @ 0..=9 => b'0' + c,
+        c => b'a' + c - 10,
+    };
     [hex(byte >> 4), hex(byte)]
 }
 
