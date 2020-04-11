@@ -1,5 +1,6 @@
 # mangling
 
+![crates.io](https://img.shields.io/crates/v/mangling.svg)
 ![Rust](https://github.com/kulp/mangling/workflows/Rust/badge.svg)
 
 ## Purpose
