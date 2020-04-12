@@ -3,6 +3,7 @@
 ![crates.io](https://img.shields.io/crates/v/mangling.svg)
 ![Rust](https://github.com/kulp/mangling/workflows/Rust/badge.svg)
 ![rustc 1.42+](https://img.shields.io/badge/rustc-1.42+-yellow.svg)
+[![codecov](https://codecov.io/gh/kulp/mangling/branch/develop/graph/badge.svg)](https://codecov.io/gh/kulp/mangling)
 
 ## Purpose
 This library provides for reversibly generating identifiers (hereinafter "mangled names") that are valid under C-language rules, from arbitrary byte streams, while maintaining a measure of human readability.
