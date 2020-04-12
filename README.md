@@ -1,7 +1,7 @@
 # mangling
 
-![crates.io](https://img.shields.io/crates/v/mangling.svg)
-![Rust](https://github.com/kulp/mangling/workflows/Rust/badge.svg)
+[![crates.io](https://img.shields.io/crates/v/mangling.svg)](https://crates.io/crates/mangling)
+[![Rust](https://github.com/kulp/mangling/workflows/Rust/badge.svg)](https://github.com/kulp/mangling/actions?query=workflow%3ARust+branch%3Adevelop)
 ![rustc 1.42+](https://img.shields.io/badge/rustc-1.42+-yellow.svg)
 [![codecov](https://codecov.io/gh/kulp/mangling/branch/develop/graph/badge.svg)](https://codecov.io/gh/kulp/mangling)
 
