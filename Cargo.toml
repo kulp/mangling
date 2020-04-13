@@ -10,6 +10,9 @@ repository = "https://github.com/kulp/mangling"
 license = "MIT"
 readme = "README.md"
 
+[lib]
+crate-type = ["lib", "staticlib", "cdylib"]
+
 [badges]
 maintenance = { status = "experimental" }
 codecov = { repository = "kulp/mangling", branch = "develop", service = "github" }

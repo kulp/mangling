@@ -39,6 +39,7 @@
 use quickcheck::quickcheck;
 
 use std::error::Error;
+use std::os::raw::c_char;
 use std::str::FromStr;
 
 /// A generic Result type for functions in this module
@@ -70,6 +71,30 @@ fn test_mangle() {
     for (unmangled, mangled) in MANGLE_LIST {
         assert_eq!(&mangle(unmangled.bytes()), mangled);
     }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> *mut c_char {
+    use std::ffi::CString;
+
+    if name == core::ptr::null() {
+        return core::ptr::null_mut();
+    }
+    let name = std::slice::from_raw_parts(name, size);
+    let name : &[u8] = core::intrinsics::transmute(name);
+    CString::new(mangle(name))
+        .map(CString::into_raw)
+        .unwrap_or(core::ptr::null_mut())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn mangling_destroy(ptr : *mut c_char) {
+    use std::ffi::CString;
+
+    if ptr == core::ptr::null_mut() {
+        return;
+    }
+    core::mem::drop(CString::from_raw(ptr))
 }
 
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
@@ -151,6 +176,25 @@ fn test_demangle() -> ManglingResult<()> {
     }
 
     Ok(())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn mangling_demangle(size : usize, name : *const c_char) -> *mut c_char {
+    use std::ffi::CString;
+
+    if name == core::ptr::null() {
+        return core::ptr::null_mut();
+    }
+    let name = std::slice::from_raw_parts(name, size);
+    let name : &[u8] = core::intrinsics::transmute(name);
+    let name = core::str::from_utf8(name);
+    let out = name.map(demangle);
+    let out = out.map(|x| x.map(CString::new));
+    let out = out.map(|x| x.map(|x| x.map(CString::into_raw)));
+    match out {
+        Ok(Ok(Ok(x))) => x,
+        _ => core::ptr::null_mut(),
+    }
 }
 
 /// Takes a string slice corresponding to a symbol as converted by the `mangle`
