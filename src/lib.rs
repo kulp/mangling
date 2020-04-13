@@ -72,7 +72,10 @@ fn test_mangle() {
 
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
 /// use as an identifier in the C language.
-pub fn mangle(name : impl IntoIterator<Item = u8>) -> String {
+pub fn mangle<'a, T>(name : impl IntoIterator<Item = T>) -> String
+where
+    T : core::borrow::Borrow<u8>,
+{
     use std::cell::Cell;
     use std::rc::Rc;
 
@@ -88,6 +91,7 @@ pub fn mangle(name : impl IntoIterator<Item = u8>) -> String {
     let result : Vec<_> = name
         .into_iter()
         .scan(start, |st : &mut (Option<bool>, bool, Many), item| {
+            let item = *item.borrow();
             let ch = char::from(item);
             let increment = || {
                 let c = Rc::clone(&st.2);
