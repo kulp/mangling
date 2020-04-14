@@ -42,7 +42,7 @@
 use quickcheck::quickcheck;
 
 use std::error::Error;
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
 
 /// A generic Result type for functions in this module
@@ -209,19 +209,21 @@ fn test_demangle() -> ManglingResult<()> {
     Ok(())
 }
 
-/// Provides a C-compatible interface to the `demangle` function, returning a pointer to an
-/// allocated byte array that must be passed to `mangling_destroy` when destruction is desired.
+/// Provides a C-compatible interface to the `demangle` function, returning a zero value upon
+/// success and populating out-parameters with the size and location of a newly-allocated block of
+/// memory that must be passed to `mangling_destroy` when destruction is desired.
 ///
-/// A null pointer is returned under the following conditions:
+/// Failure is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in
 /// - a NUL (`'\0'`) byte appears in the input
 /// - the input string was not a valid mangled name
 ///
 /// Example usage, in C:
 /// ```c
-/// extern char *mangling_demangle(size_t insize, const char *data, size_t *outsize);
+/// int mangling_demangle(size_t insize, const char *instr, size_t *outsize, char **outptr);
 /// size_t outsize = 0;
-/// char *result = mangling_demangle(strlen(argv[1]), argv[1], &outsize);
+/// char *result = NULL;
+/// int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, &result);
 /// fwrite(result, 1, outsize, stdout);
 /// puts(result);
 /// mangling_destroy(result);
@@ -237,27 +239,29 @@ pub unsafe extern "C" fn mangling_demangle(
     insize : usize,
     instr : *const c_char,
     outsize : *mut usize,
-) -> *mut c_char {
+    outptr : *mut *mut c_char,
+) -> c_int {
     use std::ffi::CString;
 
     if instr.is_null() {
-        return core::ptr::null_mut();
+        return 1; // null pointer input is considered an error
     }
     let instr = std::slice::from_raw_parts(instr, insize);
     let instr = &*(instr as *const [i8] as *const [u8]);
     let instr = core::str::from_utf8(instr);
     let orig = instr.map(demangle);
-    match orig {
-        Ok(Ok(x)) => {
-            if !outsize.is_null() {
-                *outsize = x.len();
-            }
-            CString::new(x)
+    if let Ok(Ok(x)) = orig {
+        if !outsize.is_null() {
+            *outsize = x.len();
+        }
+        if !outptr.is_null() {
+            *outptr = CString::new(x)
                 .map(CString::into_raw)
-                .unwrap_or(core::ptr::null_mut())
-        },
-        _ => core::ptr::null_mut(),
+                .unwrap_or(core::ptr::null_mut());
+        }
     }
+
+    0 // indicate success
 }
 
 /// Takes a string slice corresponding to a symbol as converted by the `mangle`
