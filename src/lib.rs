@@ -284,7 +284,7 @@ fn test_demangle() -> ManglingResult<()> {
 /// memory that must be passed to `mangling_destroy` when destruction is desired.
 ///
 /// Failure is indicated with a non-zero exit code under the following conditions:
-/// - a null pointer was passed in
+/// - a null pointer was passed in for the input string argument
 /// - a NUL (`'\0'`) byte appears in the input
 /// - the input string was not a valid mangled name
 ///
