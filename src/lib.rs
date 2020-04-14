@@ -78,10 +78,25 @@ fn test_mangle() {
 
 /// Provides a C-compatible interface to the `mangle` function, returning a NUL-terminated C string
 /// that must be passed to `mangling_destroy` when destruction is desired.
+///
+/// A null pointer is returned if and only if a null pointer was passed in.
+///
+/// A NUL (`'\0'`) byte in the input is mangled like any other byte, and does not terminate the
+/// input.
+///
+/// Example usage, in C:
+/// ```c
+/// extern char *mangling_mangle(size_t size, const char *data);
+/// char *result = mangling_mangle(strlen(argv[1]), argv[1]);
+/// puts(result);
+/// mangling_destroy(result);
+/// ```
+///
 /// # Safety
 /// In order to avoid undefined behavior, this function must be called with `name` pointing to a
-/// string of bytes at least `size` in length. No requirement is levied on the contents of the
-/// referenced memory, besides that it must be readable.
+/// string of bytes at least `size` in length, or else `name` must be a null pointer. No
+/// requirement is levied on the contents of the referenced memory, besides that it must be
+/// readable.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> *mut c_char {
     use std::ffi::CString;
@@ -97,12 +112,12 @@ pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> 
 }
 
 /// Frees the memory associated with a C string that was previously returned from `mangling_mangle`
-/// or `mangling_demangle`.
+/// or `mangling_demangle`. Invoking `mangling_destroy` with a null pointer is defined as a no-op.
 /// # Safety
-/// In order to avoid undefined behavior, this function must be called with a pointer that was
-/// returned from a previous invocation of `mangling_mangle` or of `mangling_demangle`, and it can
-/// be invoked at most once per invocation of the previous functions, in order to avoid "double
-/// freeing" of memory.
+/// In order to avoid undefined behavior, this function must be invoked only either either a null
+/// pointer, or else with a pointer that was returned from a previous invocation of
+/// `mangling_mangle` or of `mangling_demangle`. This function must not be invoked more than once
+/// for the same pointer.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_destroy(ptr : *mut c_char) {
     use std::ffi::CString;
@@ -196,10 +211,25 @@ fn test_demangle() -> ManglingResult<()> {
 
 /// Provides a C-compatible interface to the `demangle` function, returning a NUL-terminated C
 /// string that must be passed to `mangling_destroy` when destruction is desired.
+///
+/// A null pointer is returned under the following conditions:
+/// - a null pointer was passed in
+/// - a NUL (`'\0'`) byte appears in the input
+/// - the input string was not a valid mangled name
+///
+/// Example usage, in C:
+/// ```c
+/// extern char *mangling_demangle(size_t size, const char *data);
+/// char *result = mangling_demangle(strlen(argv[1]), argv[1]);
+/// puts(result);
+/// mangling_destroy(result);
+/// ```
+///
 /// # Safety
 /// In order to avoid undefined behavior, this function must be called with `name` pointing to a
-/// string of bytes at least `size` in length. No requirement is levied on the contents of the
-/// referenced memory, besides that it must be readable.
+/// string of bytes at least `size` in length, or else `name` must be a null pointer. No
+/// requirement is levied on the contents of the referenced memory, besides that it must be
+/// readable.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_demangle(size : usize, name : *const c_char) -> *mut c_char {
     use std::ffi::CString;
