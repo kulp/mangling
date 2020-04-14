@@ -151,6 +151,7 @@ pub unsafe extern "C" fn mangling_mangle(
 
 /// Frees the memory associated with a C string that was previously returned from `mangling_mangle`
 /// or `mangling_demangle`. Invoking `mangling_destroy` with a null pointer is defined as a no-op.
+///
 /// # Safety
 /// In order to avoid undefined behavior, this function must be invoked only either either a null
 /// pointer, or else with a pointer that was returned from a previous invocation of
