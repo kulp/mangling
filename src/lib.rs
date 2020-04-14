@@ -73,6 +73,8 @@ fn test_mangle() {
     }
 }
 
+/// Provides a C-compatible interface to the `mangle` function, returning a NUL-terminated C string
+/// that must be passed to `mangling_destroy` when destruction is desired.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> *mut c_char {
     use std::ffi::CString;
@@ -87,6 +89,8 @@ pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> 
         .unwrap_or(core::ptr::null_mut())
 }
 
+/// Frees the memory associated with a C string that was previously returned from `mangling_mangle`
+/// or `mangling_demangle`.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_destroy(ptr : *mut c_char) {
     use std::ffi::CString;
@@ -178,6 +182,8 @@ fn test_demangle() -> ManglingResult<()> {
     Ok(())
 }
 
+/// Provides a C-compatible interface to the `demangle` function, returning a NUL-terminated C
+/// string that must be passed to `mangling_destroy` when destruction is desired.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_demangle(size : usize, name : *const c_char) -> *mut c_char {
     use std::ffi::CString;
