@@ -76,18 +76,20 @@ fn test_mangle() {
     }
 }
 
-/// Provides a C-compatible interface to the `mangle` function, returning a NUL-terminated C string
+/// Provides a C-compatible interface to the `mangle` function, returning a zero value upon
+/// success and populating out-parameters with the size and location of a newly-allocated C string
 /// that must be passed to `mangling_destroy` when destruction is desired.
 ///
-/// A null pointer is returned if and only if a null pointer was passed in.
-///
-/// A NUL (`'\0'`) byte in the input is mangled like any other byte, and does not terminate the
+/// Failure is indicated with a non-zero exit code if and only if a null pointer was passed in. A
+/// NUL (`'\0'`) byte in the input is mangled like any other byte, and does not terminate the
 /// input.
 ///
 /// Example usage, in C:
 /// ```c
-/// extern char *mangling_mangle(size_t insize, const char *data);
-/// char *result = mangling_mangle(strlen(argv[1]), argv[1]);
+/// int mangling_mangle(size_t insize, const char *inptr, size_t *outsize, char **outstr);
+/// size_t outsize = 0;
+/// char *result = NULL;
+/// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, &result);
 /// puts(result);
 /// mangling_destroy(result);
 /// ```
@@ -98,17 +100,30 @@ fn test_mangle() {
 /// requirement is levied on the contents of the referenced memory, besides that it must be
 /// readable.
 #[no_mangle]
-pub unsafe extern "C" fn mangling_mangle(insize : usize, inptr : *const c_char) -> *mut c_char {
+pub unsafe extern "C" fn mangling_mangle(
+    insize : usize,
+    inptr : *const c_char,
+    outsize : *mut usize,
+    outstr : *mut *mut c_char,
+) -> c_int {
     use std::ffi::CString;
 
     if inptr.is_null() {
-        return core::ptr::null_mut();
+        return 1; // null pointer input is considered an error
     }
     let inptr = std::slice::from_raw_parts(inptr, insize);
     let inptr = &*(inptr as *const [i8] as *const [u8]);
-    CString::new(mangle(inptr))
-        .map(CString::into_raw)
-        .unwrap_or(core::ptr::null_mut())
+    let mangled = mangle(inptr);
+    if !outsize.is_null() {
+        *outsize = mangled.len();
+    }
+    if !outstr.is_null() {
+        *outstr = CString::new(mangled)
+            .map(CString::into_raw)
+            .unwrap_or(core::ptr::null_mut());
+    }
+
+    0 // indicate success
 }
 
 /// Frees the memory associated with a C string that was previously returned from `mangling_mangle`
