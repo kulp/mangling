@@ -33,6 +33,7 @@
 //! let reverse = mangling::demangle(expect).unwrap();
 //! assert_eq!(reverse, input);
 //! ```
+#![deny(clippy::cmp_null)]
 #![deny(clippy::extra_unused_lifetimes)]
 
 #[cfg(test)]
@@ -79,7 +80,7 @@ fn test_mangle() {
 pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> *mut c_char {
     use std::ffi::CString;
 
-    if name == core::ptr::null() {
+    if name.is_null() {
         return core::ptr::null_mut();
     }
     let name = std::slice::from_raw_parts(name, size);
@@ -95,7 +96,7 @@ pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> 
 pub unsafe extern "C" fn mangling_destroy(ptr : *mut c_char) {
     use std::ffi::CString;
 
-    if ptr == core::ptr::null_mut() {
+    if ptr.is_null() {
         return;
     }
     core::mem::drop(CString::from_raw(ptr))
@@ -188,7 +189,7 @@ fn test_demangle() -> ManglingResult<()> {
 pub unsafe extern "C" fn mangling_demangle(size : usize, name : *const c_char) -> *mut c_char {
     use std::ffi::CString;
 
-    if name == core::ptr::null() {
+    if name.is_null() {
         return core::ptr::null_mut();
     }
     let name = std::slice::from_raw_parts(name, size);
