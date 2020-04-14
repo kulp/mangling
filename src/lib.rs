@@ -27,7 +27,7 @@
 //! let input = "abc/123x".as_bytes();
 //! let expect = "_3abc04_2f3132331x";
 //!
-//! let output = mangling::mangle(input.to_vec());
+//! let output = mangling::mangle(input);
 //! assert_eq!(output, expect);
 //!
 //! let reverse = mangling::demangle(expect).unwrap();
