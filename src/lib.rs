@@ -311,6 +311,7 @@ pub unsafe extern "C" fn mangling_demangle(
     outsize : *mut usize,
     outptr : *mut *mut c_char,
 ) -> c_int {
+    #![allow(clippy::needless_return)]
     use std::ffi::CString;
 
     if instr.is_null() {
@@ -320,18 +321,22 @@ pub unsafe extern "C" fn mangling_demangle(
     let instr = &*(instr as *const [c_char] as *const [u8]);
     let instr = core::str::from_utf8(instr);
     let orig = instr.map(demangle);
-    if let Ok(Ok(x)) = orig {
-        if !outsize.is_null() {
-            *outsize = x.len();
-        }
-        if !outptr.is_null() {
-            *outptr = CString::new(x)
-                .map(CString::into_raw)
-                .unwrap_or(core::ptr::null_mut());
-        }
-    }
 
-    0 // indicate success
+    match orig {
+        Ok(Ok(x)) => {
+            if !outsize.is_null() {
+                *outsize = x.len();
+            }
+            if !outptr.is_null() {
+                *outptr = CString::new(x)
+                    .map(CString::into_raw)
+                    .unwrap_or(core::ptr::null_mut());
+            }
+
+            return 0; // indicate success
+        },
+        _ => return 1, // indicate failure
+    }
 }
 
 /// Takes a string slice corresponding to a symbol as converted by the `mangle`
@@ -401,14 +406,15 @@ quickcheck! {
 
             let mut result : *mut c_char = core::ptr::null_mut();
             let mut len : usize = 0;
-            unsafe {
+            let success = unsafe {
                 mangling_demangle(
                     m.len(),
                     m.as_ptr() as *const c_char,
                     &mut len as *mut usize,
                     &mut result as *mut *mut c_char,
-                );
+                )
             };
+            assert_ne!(success, 0);
             assert!(result.is_null());
         }
     }
