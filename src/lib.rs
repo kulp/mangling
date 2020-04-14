@@ -72,7 +72,30 @@ const DEMANGLE_BAD : &[&str] = &["bad", "_1", "_0", "_03x"];
 #[test]
 fn test_mangle() {
     for (unmangled, mangled) in MANGLE_LIST {
-        assert_eq!(&mangle(unmangled.bytes()), mangled);
+        let want = mangled;
+
+        let got = mangle(unmangled.bytes());
+        assert_eq!(want, &got);
+
+        let got = {
+            let mut result : *mut c_char = core::ptr::null_mut();
+            let mut len : usize = 0;
+            let result = unsafe {
+                mangling_mangle(
+                    unmangled.len(),
+                    unmangled.as_ptr() as *const c_char,
+                    &mut len as *mut usize,
+                    &mut result as *mut *mut c_char,
+                );
+                assert!(!result.is_null());
+                let r = &*(result as *const c_char as *const u8);
+                let owned = std::slice::from_raw_parts(r, len).to_owned();
+                std::ptr::drop_in_place(result);
+                owned
+            };
+            String::from_utf8(result).unwrap()
+        };
+        assert_eq!(want, &got);
     }
 }
 
@@ -212,13 +235,44 @@ where
 #[test]
 fn test_demangle() -> ManglingResult<()> {
     for (unmangled, mangled) in MANGLE_LIST {
-        let got : Vec<u8> = demangle(mangled)?;
         let want : Vec<u8> = (*unmangled).to_string().into();
+
+        let got : Vec<u8> = demangle(mangled)?;
+        assert_eq!(want, got);
+
+        let got = {
+            let mut result : *mut c_char = core::ptr::null_mut();
+            let mut len : usize = 0;
+            unsafe {
+                mangling_demangle(
+                    mangled.len(),
+                    mangled.as_ptr() as *const c_char,
+                    &mut len as *mut usize,
+                    &mut result as *mut *mut c_char,
+                );
+                assert!(!result.is_null());
+                let r = &*(result as *const c_char as *const u8);
+                let owned = std::slice::from_raw_parts(r, len).to_owned();
+                std::ptr::drop_in_place(result);
+                owned
+            }
+        };
         assert_eq!(want, got);
     }
 
     for mangled in DEMANGLE_BAD {
         assert!(demangle(mangled).is_err());
+        let mut result : *mut c_char = core::ptr::null_mut();
+        let mut len : usize = 0;
+        unsafe {
+            mangling_demangle(
+                mangled.len(),
+                mangled.as_ptr() as *const c_char,
+                &mut len as *mut usize,
+                &mut result as *mut *mut c_char,
+            );
+        };
+        assert!(result.is_null());
     }
 
     Ok(())
@@ -342,7 +396,19 @@ quickcheck! {
         for (_, mangled) in MANGLE_LIST {
             let (_, v) : (Vec<_>, Vec<_>) = mangled.chars().enumerate().filter(|&(i, _)| i != deletion % mangled.len()).unzip();
             let m : String = v.into_iter().collect();
-            assert!(demangle(&m).is_err())
+            assert!(demangle(&m).is_err());
+
+            let mut result : *mut c_char = core::ptr::null_mut();
+            let mut len : usize = 0;
+            unsafe {
+                mangling_demangle(
+                    m.len(),
+                    m.as_ptr() as *const c_char,
+                    &mut len as *mut usize,
+                    &mut result as *mut *mut c_char,
+                );
+            };
+            assert!(result.is_null());
         }
     }
 }
