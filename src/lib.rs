@@ -35,6 +35,7 @@
 //! ```
 #![deny(clippy::cmp_null)]
 #![deny(clippy::extra_unused_lifetimes)]
+#![deny(clippy::missing_safety_doc)]
 #![deny(clippy::transmute_ptr_to_ptr)]
 
 #[cfg(test)]
@@ -77,6 +78,10 @@ fn test_mangle() {
 
 /// Provides a C-compatible interface to the `mangle` function, returning a NUL-terminated C string
 /// that must be passed to `mangling_destroy` when destruction is desired.
+/// # Safety
+/// In order to avoid undefined behavior, this function must be called with `name` pointing to a
+/// string of bytes at least `size` in length. No requirement is levied on the contents of the
+/// referenced memory, besides that it must be readable.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> *mut c_char {
     use std::ffi::CString;
@@ -93,6 +98,11 @@ pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> 
 
 /// Frees the memory associated with a C string that was previously returned from `mangling_mangle`
 /// or `mangling_demangle`.
+/// # Safety
+/// In order to avoid undefined behavior, this function must be called with a pointer that was
+/// returned from a previous invocation of `mangling_mangle` or of `mangling_demangle`, and it can
+/// be invoked at most once per invocation of the previous functions, in order to avoid "double
+/// freeing" of memory.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_destroy(ptr : *mut c_char) {
     use std::ffi::CString;
@@ -186,6 +196,10 @@ fn test_demangle() -> ManglingResult<()> {
 
 /// Provides a C-compatible interface to the `demangle` function, returning a NUL-terminated C
 /// string that must be passed to `mangling_destroy` when destruction is desired.
+/// # Safety
+/// In order to avoid undefined behavior, this function must be called with `name` pointing to a
+/// string of bytes at least `size` in length. No requirement is levied on the contents of the
+/// referenced memory, besides that it must be readable.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_demangle(size : usize, name : *const c_char) -> *mut c_char {
     use std::ffi::CString;
