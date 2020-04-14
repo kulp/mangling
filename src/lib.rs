@@ -33,6 +33,8 @@
 //! let reverse = mangling::demangle(expect).unwrap();
 //! assert_eq!(reverse, input);
 //! ```
+#![deny(clippy::extra_unused_lifetimes)]
+
 #[cfg(test)]
 use quickcheck::quickcheck;
 
@@ -72,7 +74,7 @@ fn test_mangle() {
 
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
 /// use as an identifier in the C language.
-pub fn mangle<'a, T>(name : impl IntoIterator<Item = T>) -> String
+pub fn mangle<T>(name : impl IntoIterator<Item = T>) -> String
 where
     T : core::borrow::Borrow<u8>,
 {
