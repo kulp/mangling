@@ -209,8 +209,8 @@ fn test_demangle() -> ManglingResult<()> {
     Ok(())
 }
 
-/// Provides a C-compatible interface to the `demangle` function, returning a NUL-terminated C
-/// string that must be passed to `mangling_destroy` when destruction is desired.
+/// Provides a C-compatible interface to the `demangle` function, returning a pointer to an
+/// allocated byte array that must be passed to `mangling_destroy` when destruction is desired.
 ///
 /// A null pointer is returned under the following conditions:
 /// - a null pointer was passed in
@@ -219,8 +219,10 @@ fn test_demangle() -> ManglingResult<()> {
 ///
 /// Example usage, in C:
 /// ```c
-/// extern char *mangling_demangle(size_t size, const char *data);
-/// char *result = mangling_demangle(strlen(argv[1]), argv[1]);
+/// extern char *mangling_demangle(size_t size, const char *data, size_t *outsize);
+/// size_t outsize = 0;
+/// char *result = mangling_demangle(strlen(argv[1]), argv[1], &outsize);
+/// fwrite(result, 1, outsize, stdout);
 /// puts(result);
 /// mangling_destroy(result);
 /// ```
@@ -231,7 +233,11 @@ fn test_demangle() -> ManglingResult<()> {
 /// requirement is levied on the contents of the referenced memory, besides that it must be
 /// readable.
 #[no_mangle]
-pub unsafe extern "C" fn mangling_demangle(size : usize, name : *const c_char) -> *mut c_char {
+pub unsafe extern "C" fn mangling_demangle(
+    size : usize,
+    name : *const c_char,
+    outsize : *mut usize,
+) -> *mut c_char {
     use std::ffi::CString;
 
     if name.is_null() {
@@ -240,11 +246,16 @@ pub unsafe extern "C" fn mangling_demangle(size : usize, name : *const c_char) -
     let name = std::slice::from_raw_parts(name, size);
     let name = &*(name as *const [i8] as *const [u8]);
     let name = core::str::from_utf8(name);
-    let out = name.map(demangle);
-    let out = out.map(|x| x.map(CString::new));
-    let out = out.map(|x| x.map(|x| x.map(CString::into_raw)));
-    match out {
-        Ok(Ok(Ok(x))) => x,
+    let orig = name.map(demangle);
+    match orig {
+        Ok(Ok(x)) => {
+            if !outsize.is_null() {
+                *outsize = x.len();
+            }
+            CString::new(x)
+                .map(CString::into_raw)
+                .unwrap_or(core::ptr::null_mut())
+        },
         _ => core::ptr::null_mut(),
     }
 }
