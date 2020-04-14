@@ -35,6 +35,7 @@
 //! ```
 #![deny(clippy::cmp_null)]
 #![deny(clippy::extra_unused_lifetimes)]
+#![deny(clippy::transmute_ptr_to_ptr)]
 
 #[cfg(test)]
 use quickcheck::quickcheck;
@@ -84,7 +85,7 @@ pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> 
         return core::ptr::null_mut();
     }
     let name = std::slice::from_raw_parts(name, size);
-    let name : &[u8] = core::intrinsics::transmute(name);
+    let name = &*(name as *const [i8] as *const [u8]);
     CString::new(mangle(name))
         .map(CString::into_raw)
         .unwrap_or(core::ptr::null_mut())
@@ -193,7 +194,7 @@ pub unsafe extern "C" fn mangling_demangle(size : usize, name : *const c_char) -
         return core::ptr::null_mut();
     }
     let name = std::slice::from_raw_parts(name, size);
-    let name : &[u8] = core::intrinsics::transmute(name);
+    let name = &*(name as *const [i8] as *const [u8]);
     let name = core::str::from_utf8(name);
     let out = name.map(demangle);
     let out = out.map(|x| x.map(CString::new));
