@@ -86,27 +86,27 @@ fn test_mangle() {
 ///
 /// Example usage, in C:
 /// ```c
-/// extern char *mangling_mangle(size_t size, const char *data);
+/// extern char *mangling_mangle(size_t insize, const char *data);
 /// char *result = mangling_mangle(strlen(argv[1]), argv[1]);
 /// puts(result);
 /// mangling_destroy(result);
 /// ```
 ///
 /// # Safety
-/// In order to avoid undefined behavior, this function must be called with `name` pointing to a
-/// string of bytes at least `size` in length, or else `name` must be a null pointer. No
+/// In order to avoid undefined behavior, this function must be called with `inptr` pointing to a
+/// string of bytes at least `insize` in length, or else `inptr` must be a null pointer. No
 /// requirement is levied on the contents of the referenced memory, besides that it must be
 /// readable.
 #[no_mangle]
-pub unsafe extern "C" fn mangling_mangle(size : usize, name : *const c_char) -> *mut c_char {
+pub unsafe extern "C" fn mangling_mangle(insize : usize, inptr : *const c_char) -> *mut c_char {
     use std::ffi::CString;
 
-    if name.is_null() {
+    if inptr.is_null() {
         return core::ptr::null_mut();
     }
-    let name = std::slice::from_raw_parts(name, size);
-    let name = &*(name as *const [i8] as *const [u8]);
-    CString::new(mangle(name))
+    let inptr = std::slice::from_raw_parts(inptr, insize);
+    let inptr = &*(inptr as *const [i8] as *const [u8]);
+    CString::new(mangle(inptr))
         .map(CString::into_raw)
         .unwrap_or(core::ptr::null_mut())
 }
@@ -219,7 +219,7 @@ fn test_demangle() -> ManglingResult<()> {
 ///
 /// Example usage, in C:
 /// ```c
-/// extern char *mangling_demangle(size_t size, const char *data, size_t *outsize);
+/// extern char *mangling_demangle(size_t insize, const char *data, size_t *outsize);
 /// size_t outsize = 0;
 /// char *result = mangling_demangle(strlen(argv[1]), argv[1], &outsize);
 /// fwrite(result, 1, outsize, stdout);
@@ -228,25 +228,25 @@ fn test_demangle() -> ManglingResult<()> {
 /// ```
 ///
 /// # Safety
-/// In order to avoid undefined behavior, this function must be called with `name` pointing to a
-/// string of bytes at least `size` in length, or else `name` must be a null pointer. No
+/// In order to avoid undefined behavior, this function must be called with `instr` pointing to a
+/// string of bytes at least `insize` in length, or else `instr` must be a null pointer. No
 /// requirement is levied on the contents of the referenced memory, besides that it must be
 /// readable.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_demangle(
-    size : usize,
-    name : *const c_char,
+    insize : usize,
+    instr : *const c_char,
     outsize : *mut usize,
 ) -> *mut c_char {
     use std::ffi::CString;
 
-    if name.is_null() {
+    if instr.is_null() {
         return core::ptr::null_mut();
     }
-    let name = std::slice::from_raw_parts(name, size);
-    let name = &*(name as *const [i8] as *const [u8]);
-    let name = core::str::from_utf8(name);
-    let orig = name.map(demangle);
+    let instr = std::slice::from_raw_parts(instr, insize);
+    let instr = &*(instr as *const [i8] as *const [u8]);
+    let instr = core::str::from_utf8(instr);
+    let orig = instr.map(demangle);
     match orig {
         Ok(Ok(x)) => {
             if !outsize.is_null() {
