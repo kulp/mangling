@@ -283,7 +283,6 @@ fn test_demangle() -> ManglingResult<()> {
 ///
 /// Failure is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in for the input string argument
-/// - a NUL (`'\0'`) byte appears in the input
 /// - the input string was not a valid mangled name
 ///
 /// Example usage, in C:
@@ -310,8 +309,6 @@ pub unsafe extern "C" fn mangling_demangle(
     outptr : *mut *mut c_char,
 ) -> c_int {
     #![allow(clippy::needless_return)]
-    use std::ffi::CString;
-
     if instr.is_null() {
         return 1; // null pointer input is considered an error
     }
@@ -326,9 +323,7 @@ pub unsafe extern "C" fn mangling_demangle(
                 *outsize = x.len();
             }
             if !outptr.is_null() {
-                *outptr = CString::new(x)
-                    .map(CString::into_raw)
-                    .unwrap_or(core::ptr::null_mut());
+                *outptr = Box::into_raw(x.into_boxed_slice()) as *mut c_char;
             }
 
             return 0; // indicate success
