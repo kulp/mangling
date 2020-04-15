@@ -399,16 +399,20 @@ quickcheck! {
 
             let mut result : *mut c_char = core::ptr::null_mut();
             let mut len : usize = 0;
-            let success = unsafe {
-                mangling_demangle(
-                    m.len(),
-                    m.as_ptr() as *const c_char,
-                    &mut len as *mut usize,
-                    &mut result as *mut *mut c_char,
-                )
-            };
-            assert_ne!(success, 0);
-            assert!(result.is_null());
+            for &up in &[&mut len as *mut usize, core::ptr::null_mut()] {
+                for &rp in &[&mut result as *mut *mut c_char, core::ptr::null_mut()] {
+                    let success = unsafe {
+                        mangling_demangle(
+                            m.len(),
+                            m.as_ptr() as *const c_char,
+                            up,
+                            rp,
+                        )
+                    };
+                    assert_ne!(success, 0);
+                    assert!(result.is_null());
+                }
+            }
         }
     }
 }
