@@ -159,12 +159,10 @@ pub unsafe extern "C" fn mangling_mangle(
 /// for the same pointer.
 #[no_mangle]
 pub unsafe extern "C" fn mangling_destroy(ptr : *mut c_char) {
-    use std::ffi::CString;
-
     if ptr.is_null() {
         return;
     }
-    core::mem::drop(CString::from_raw(ptr))
+    core::ptr::drop_in_place(ptr)
 }
 
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
