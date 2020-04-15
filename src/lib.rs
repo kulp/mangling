@@ -81,12 +81,13 @@ fn test_mangle() {
             let mut result : *mut c_char = core::ptr::null_mut();
             let mut len : usize = 0;
             let result = unsafe {
-                mangling_mangle(
+                let success = mangling_mangle(
                     unmangled.len(),
                     unmangled.as_ptr() as *const c_char,
                     &mut len as *mut usize,
                     &mut result as *mut *mut c_char,
                 );
+                assert_eq!(success, 0);
                 assert!(!result.is_null());
                 let r = &*(result as *const c_char as *const u8);
                 let owned = std::slice::from_raw_parts(r, len).to_owned();
@@ -239,16 +240,41 @@ fn test_demangle() -> ManglingResult<()> {
         let got : Vec<u8> = demangle(mangled)?;
         assert_eq!(want, got);
 
+        {
+            let mut result : *mut c_char = core::ptr::null_mut();
+            let mut len : usize = 0;
+            unsafe {
+                let success = mangling_demangle(
+                    mangled.len(),
+                    mangled.as_ptr() as *const c_char,
+                    &mut len as *mut usize,
+                    core::ptr::null_mut(),
+                );
+                assert_eq!(success, 0);
+            };
+            unsafe {
+                let success = mangling_demangle(
+                    mangled.len(),
+                    mangled.as_ptr() as *const c_char,
+                    core::ptr::null_mut(),
+                    &mut result as *mut *mut c_char,
+                );
+                assert_eq!(success, 0);
+                mangling_destroy(result as *mut c_char);
+            };
+        }
+
         let got = {
             let mut result : *mut c_char = core::ptr::null_mut();
             let mut len : usize = 0;
             unsafe {
-                mangling_demangle(
+                let success = mangling_demangle(
                     mangled.len(),
                     mangled.as_ptr() as *const c_char,
                     &mut len as *mut usize,
                     &mut result as *mut *mut c_char,
                 );
+                assert_eq!(success, 0);
                 assert!(!result.is_null());
                 let r = &*(result as *const c_char as *const u8);
                 let owned = std::slice::from_raw_parts(r, len).to_owned();
@@ -264,12 +290,13 @@ fn test_demangle() -> ManglingResult<()> {
         let mut result : *mut c_char = core::ptr::null_mut();
         let mut len : usize = 0;
         unsafe {
-            mangling_demangle(
+            let success = mangling_demangle(
                 mangled.len(),
                 mangled.as_ptr() as *const c_char,
                 &mut len as *mut usize,
                 &mut result as *mut *mut c_char,
             );
+            assert_ne!(success, 0);
         };
         assert!(result.is_null());
     }
