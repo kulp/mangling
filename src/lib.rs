@@ -67,7 +67,7 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 ];
 
 #[cfg(test)]
-const DEMANGLE_BAD : &[&str] = &["bad", "_1", "_0", "_03x"];
+const DEMANGLE_BAD : &[&str] = &["bad", "_1", "_0", "_03x", "_\u{0}"];
 
 #[test]
 fn test_mangle() {
