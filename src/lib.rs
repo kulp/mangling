@@ -80,7 +80,9 @@ fn test_mangle() {
         let got = {
             let mut result : *mut c_char = core::ptr::null_mut();
             let mut len : usize = 0;
-            let result = unsafe {
+            unsafe {
+                use std::ffi::CString;
+
                 let success = mangling_mangle(
                     unmangled.len(),
                     unmangled.as_ptr() as *const c_char,
@@ -89,12 +91,8 @@ fn test_mangle() {
                 );
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
-                let r = &*(result as *const c_char as *const u8);
-                let owned = std::slice::from_raw_parts(r, len).to_owned();
-                std::ptr::drop_in_place(result);
-                owned
-            };
-            String::from_utf8(result).unwrap()
+                CString::from_raw(result).into_string().unwrap()
+            }
         };
         assert_eq!(want, &got);
     }
