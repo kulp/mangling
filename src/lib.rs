@@ -161,11 +161,10 @@ pub extern "C" fn mangling_mangle(
 /// `mangling_mangle` or of `mangling_demangle`. This function must not be invoked more than once
 /// for the same pointer.
 #[no_mangle]
-pub unsafe extern "C" fn mangling_destroy(ptr : *mut c_char) {
-    if ptr.is_null() {
-        return;
+pub extern "C" fn mangling_destroy(ptr : Option<&*mut c_char>) {
+    if let Some(&ptr) = ptr {
+        unsafe { core::ptr::drop_in_place(ptr) }
     }
-    core::ptr::drop_in_place(ptr)
 }
 
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
@@ -261,7 +260,7 @@ fn test_demangle() -> ManglingResult<()> {
                     Some(&mut result),
                 );
                 assert_eq!(success, 0);
-                mangling_destroy(result as *mut c_char);
+                mangling_destroy(Some(&result));
             };
         }
 
