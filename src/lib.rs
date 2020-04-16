@@ -85,9 +85,9 @@ fn test_mangle() {
 
                 let success = mangling_mangle(
                     unmangled.len(),
-                    unmangled.as_ptr() as *const c_char,
-                    &mut len as *mut usize,
-                    &mut result as *mut *mut c_char,
+                    Some(&*(unmangled.as_ptr() as *const c_char)),
+                    Some(&mut len),
+                    Some(&mut result),
                 );
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
@@ -124,28 +124,30 @@ fn test_mangle() {
 #[no_mangle]
 pub unsafe extern "C" fn mangling_mangle(
     insize : usize,
-    inptr : *const c_char,
-    outsize : *mut usize,
-    outstr : *mut *mut c_char,
+    inptr : Option<&c_char>,
+    outsize : Option<&mut usize>,
+    outstr : Option<&mut *mut c_char>,
 ) -> c_int {
     use std::ffi::CString;
 
-    if inptr.is_null() {
-        return 1; // null pointer input is considered an error
-    }
-    let inptr = std::slice::from_raw_parts(inptr, insize);
-    let inptr = &*(inptr as *const [c_char] as *const [u8]);
-    let mangled = mangle(inptr);
-    if !outsize.is_null() {
-        *outsize = mangled.len();
-    }
-    if !outstr.is_null() {
-        *outstr = CString::new(mangled)
-            .map(CString::into_raw)
-            .unwrap_or(core::ptr::null_mut());
-    }
+    match inptr {
+        None => 1, // null pointer input is considered an error
+        Some(inptr) => {
+            let inptr = std::slice::from_raw_parts(inptr as *const c_char, insize);
+            let inptr = &*(inptr as *const [c_char] as *const [u8]);
+            let mangled = mangle(inptr);
+            if let Some(outsize) = outsize {
+                *outsize = mangled.len();
+            }
+            if let Some(outstr) = outstr {
+                *outstr = CString::new(mangled)
+                    .map(CString::into_raw)
+                    .unwrap_or(core::ptr::null_mut());
+            }
 
-    0 // indicate success
+            0 // indicate success
+        },
+    }
 }
 
 /// Frees the memory associated with a C string that was previously returned from `mangling_mangle`
@@ -240,22 +242,21 @@ fn test_demangle() -> ManglingResult<()> {
 
         {
             let mut result : *mut c_char = core::ptr::null_mut();
-            let mut len : usize = 0;
             unsafe {
                 let success = mangling_demangle(
                     mangled.len(),
-                    mangled.as_ptr() as *const c_char,
-                    &mut len as *mut usize,
-                    core::ptr::null_mut(),
+                    Some(&*(mangled.as_ptr() as *const c_char)),
+                    Some(&mut 0),
+                    None,
                 );
                 assert_eq!(success, 0);
             };
             unsafe {
                 let success = mangling_demangle(
                     mangled.len(),
-                    mangled.as_ptr() as *const c_char,
-                    core::ptr::null_mut(),
-                    &mut result as *mut *mut c_char,
+                    Some(&*(mangled.as_ptr() as *const c_char)),
+                    None,
+                    Some(&mut result),
                 );
                 assert_eq!(success, 0);
                 mangling_destroy(result as *mut c_char);
@@ -264,13 +265,13 @@ fn test_demangle() -> ManglingResult<()> {
 
         let got = {
             let mut result : *mut c_char = core::ptr::null_mut();
-            let mut len : usize = 0;
+            let mut len = 0;
             unsafe {
                 let success = mangling_demangle(
                     mangled.len(),
-                    mangled.as_ptr() as *const c_char,
-                    &mut len as *mut usize,
-                    &mut result as *mut *mut c_char,
+                    Some(&*(mangled.as_ptr() as *const c_char)),
+                    Some(&mut len),
+                    Some(&mut result),
                 );
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
@@ -286,13 +287,13 @@ fn test_demangle() -> ManglingResult<()> {
     for mangled in DEMANGLE_BAD {
         assert!(demangle(mangled).is_err());
         let mut result : *mut c_char = core::ptr::null_mut();
-        let mut len : usize = 0;
+        let mut len = 0;
         unsafe {
             let success = mangling_demangle(
                 mangled.len(),
-                mangled.as_ptr() as *const c_char,
-                &mut len as *mut usize,
-                &mut result as *mut *mut c_char,
+                Some(&*(mangled.as_ptr() as *const c_char)),
+                Some(&mut len),
+                Some(&mut result),
             );
             assert_ne!(success, 0);
         };
@@ -329,31 +330,32 @@ fn test_demangle() -> ManglingResult<()> {
 #[no_mangle]
 pub unsafe extern "C" fn mangling_demangle(
     insize : usize,
-    instr : *const c_char,
-    outsize : *mut usize,
-    outptr : *mut *mut c_char,
+    instr : Option<&c_char>,
+    outsize : Option<&mut usize>,
+    outptr : Option<&mut *mut c_char>,
 ) -> c_int {
-    #![allow(clippy::needless_return)]
-    if instr.is_null() {
-        return 1; // null pointer input is considered an error
-    }
-    let instr = std::slice::from_raw_parts(instr, insize);
-    let instr = &*(instr as *const [c_char] as *const [u8]);
-    let instr = core::str::from_utf8(instr);
-    let orig = instr.map(demangle);
+    match instr {
+        None => 1, // null pointer input is considered an error
+        Some(instr) => {
+            let instr = std::slice::from_raw_parts(instr, insize);
+            let instr = &*(instr as *const [c_char] as *const [u8]);
+            let instr = core::str::from_utf8(instr);
+            let orig = instr.map(demangle);
 
-    match orig {
-        Ok(Ok(x)) => {
-            if !outsize.is_null() {
-                *outsize = x.len();
-            }
-            if !outptr.is_null() {
-                *outptr = Box::into_raw(x.into_boxed_slice()) as *mut c_char;
-            }
+            match orig {
+                Ok(Ok(x)) => {
+                    if let Some(outsize) = outsize {
+                        *outsize = x.len();
+                    }
+                    if let Some(outptr) = outptr {
+                        *outptr = Box::into_raw(x.into_boxed_slice()) as *mut c_char;
+                    }
 
-            return 0; // indicate success
+                    0 // indicate success
+                },
+                _ => 1, // indicate failure
+            }
         },
-        _ => return 1, // indicate failure
     }
 }
 
@@ -422,22 +424,30 @@ quickcheck! {
             let m : String = v.into_iter().collect();
             assert!(demangle(&m).is_err());
 
-            let mut result : *mut c_char = core::ptr::null_mut();
-            let mut len : usize = 0;
-            for &up in &[&mut len as *mut usize, core::ptr::null_mut()] {
-                for &rp in &[&mut result as *mut *mut c_char, core::ptr::null_mut()] {
-                    let success = unsafe {
-                        mangling_demangle(
-                            m.len(),
-                            m.as_ptr() as *const c_char,
-                            up,
-                            rp,
-                        )
-                    };
-                    assert_ne!(success, 0);
-                    assert!(result.is_null());
-                }
+            fn trial(m: &str, up: Option<&mut usize>, rp: Option<&mut *mut c_char>) {
+                let success = unsafe {
+                    mangling_demangle(
+                        m.len(),
+                        Some(&*(m.as_ptr() as *const c_char)),
+                        up,
+                        rp,
+                    )
+                };
+                assert_ne!(success, 0);
             }
+
+            let mut len = 0;
+            trial(&m, Some(&mut len), None);
+            trial(&m, None, None);
+
+            let mut len = 0;
+            let mut result : *mut c_char = core::ptr::null_mut();
+            trial(&m, Some(&mut len), Some(&mut result));
+            assert!(result.is_null());
+
+            let mut result : *mut c_char = core::ptr::null_mut();
+            trial(&m, None, Some(&mut result));
+            assert!(result.is_null());
         }
     }
 }
