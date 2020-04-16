@@ -122,7 +122,7 @@ fn test_mangle() {
 /// requirement is levied on the contents of the referenced memory, besides that it must be
 /// readable.
 #[no_mangle]
-pub unsafe extern "C" fn mangling_mangle(
+pub extern "C" fn mangling_mangle(
     insize : usize,
     inptr : Option<&c_char>,
     outsize : Option<&mut usize>,
@@ -133,8 +133,10 @@ pub unsafe extern "C" fn mangling_mangle(
     match inptr {
         None => 1, // null pointer input is considered an error
         Some(inptr) => {
-            let inptr = std::slice::from_raw_parts(inptr as *const c_char, insize);
-            let inptr = &*(inptr as *const [c_char] as *const [u8]);
+            let inptr = unsafe {
+                let inptr = std::slice::from_raw_parts(inptr as *const c_char, insize);
+                &*(inptr as *const [c_char] as *const [u8])
+            };
             let mangled = mangle(inptr);
             if let Some(outsize) = outsize {
                 *outsize = mangled.len();
