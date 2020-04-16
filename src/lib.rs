@@ -328,7 +328,7 @@ fn test_demangle() -> ManglingResult<()> {
 /// requirement is levied on the contents of the referenced memory, besides that it must be
 /// readable.
 #[no_mangle]
-pub unsafe extern "C" fn mangling_demangle(
+pub extern "C" fn mangling_demangle(
     insize : usize,
     instr : Option<&c_char>,
     outsize : Option<&mut usize>,
@@ -337,8 +337,10 @@ pub unsafe extern "C" fn mangling_demangle(
     match instr {
         None => 1, // null pointer input is considered an error
         Some(instr) => {
-            let instr = std::slice::from_raw_parts(instr, insize);
-            let instr = &*(instr as *const [c_char] as *const [u8]);
+            let instr = unsafe {
+                let instr = std::slice::from_raw_parts(instr, insize);
+                &*(instr as *const [c_char] as *const [u8])
+            };
             let instr = core::str::from_utf8(instr);
             let orig = instr.map(demangle);
 
