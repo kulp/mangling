@@ -80,18 +80,19 @@ fn test_mangle() {
         let got = {
             let mut result : *mut c_char = core::ptr::null_mut();
             let mut len : usize = 0;
-            unsafe {
+            {
                 use std::ffi::CString;
 
+                let input = unsafe { &*(unmangled.as_ptr() as *const c_char) };
                 let success = mangling_mangle(
                     unmangled.len(),
-                    Some(&*(unmangled.as_ptr() as *const c_char)),
+                    Some(input),
                     Some(&mut len),
                     Some(&mut result),
                 );
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
-                CString::from_raw(result).into_string().unwrap()
+                unsafe { CString::from_raw(result).into_string().unwrap() }
             }
         };
         assert_eq!(want, &got);
@@ -243,19 +244,21 @@ fn test_demangle() -> ManglingResult<()> {
 
         {
             let mut result : *mut c_char = core::ptr::null_mut();
-            unsafe {
+            {
+                let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
                 let success = mangling_demangle(
                     mangled.len(),
-                    Some(&*(mangled.as_ptr() as *const c_char)),
+                    Some(input),
                     Some(&mut 0),
                     None,
                 );
                 assert_eq!(success, 0);
             };
-            unsafe {
+            {
+                let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
                 let success = mangling_demangle(
                     mangled.len(),
-                    Some(&*(mangled.as_ptr() as *const c_char)),
+                    Some(input),
                     None,
                     Some(&mut result),
                 );
@@ -267,19 +270,22 @@ fn test_demangle() -> ManglingResult<()> {
         let got = {
             let mut result : *mut c_char = core::ptr::null_mut();
             let mut len = 0;
-            unsafe {
+            {
+                let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
                 let success = mangling_demangle(
                     mangled.len(),
-                    Some(&*(mangled.as_ptr() as *const c_char)),
+                    Some(input),
                     Some(&mut len),
                     Some(&mut result),
                 );
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
-                let r = &*(result as *const c_char as *const u8);
-                let owned = std::slice::from_raw_parts(r, len).to_owned();
-                std::ptr::drop_in_place(result);
-                owned
+                unsafe {
+                    let r = &*(result as *const c_char as *const u8);
+                    let owned = std::slice::from_raw_parts(r, len).to_owned();
+                    std::ptr::drop_in_place(result);
+                    owned
+                }
             }
         };
         assert_eq!(want, got);
@@ -289,15 +295,14 @@ fn test_demangle() -> ManglingResult<()> {
         assert!(demangle(mangled).is_err());
         let mut result : *mut c_char = core::ptr::null_mut();
         let mut len = 0;
-        unsafe {
-            let success = mangling_demangle(
-                mangled.len(),
-                Some(&*(mangled.as_ptr() as *const c_char)),
-                Some(&mut len),
-                Some(&mut result),
-            );
-            assert_ne!(success, 0);
-        };
+        let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
+        let success = mangling_demangle(
+            mangled.len(),
+            Some(input),
+            Some(&mut len),
+            Some(&mut result),
+        );
+        assert_ne!(success, 0);
         assert!(result.is_null());
     }
 
@@ -428,14 +433,14 @@ quickcheck! {
             assert!(demangle(&m).is_err());
 
             fn trial(m: &str, up: Option<&mut usize>, rp: Option<&mut *mut c_char>) {
-                let success = unsafe {
+                let input = unsafe { &*(m.as_ptr() as *const c_char) };
+                let success =
                     mangling_demangle(
                         m.len(),
-                        Some(&*(m.as_ptr() as *const c_char)),
+                        Some(input),
                         up,
                         rp,
-                    )
-                };
+                    );
                 assert_ne!(success, 0);
             }
 
