@@ -134,8 +134,8 @@ pub extern "C" fn mangling_mangle(
         None => 1, // null pointer input is considered an error
         Some(inptr) => {
             let inptr = unsafe {
-                let inptr = std::slice::from_raw_parts(inptr as *const c_char, insize);
-                &*(inptr as *const [c_char] as *const [u8])
+                let inptr = &*(inptr as *const c_char as *const u8);
+                std::slice::from_raw_parts(inptr, insize)
             };
             let mangled = mangle(inptr);
             if let Some(outsize) = outsize {
@@ -339,8 +339,8 @@ pub extern "C" fn mangling_demangle(
         None => 1, // null pointer input is considered an error
         Some(instr) => {
             let instr = unsafe {
-                let instr = std::slice::from_raw_parts(instr, insize);
-                &*(instr as *const [c_char] as *const [u8])
+                let instr = &*(instr as *const c_char as *const u8);
+                std::slice::from_raw_parts(instr, insize)
             };
             let instr = core::str::from_utf8(instr);
             let orig = instr.map(demangle);
