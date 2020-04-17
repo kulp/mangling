@@ -113,6 +113,11 @@ pub extern "C" fn mangling_mangle(
 
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
 /// use as an identifier in the C language.
+///
+/// The length of the output string in bytes:
+/// - is always longer than the input string,
+/// - is at most five bytes for one-byte inputs, and
+/// - is at most 3.5 times as long as the input for any multi-byte input.
 pub fn mangle<T>(name : impl IntoIterator<Item = T>) -> String
 where
     T : core::borrow::Borrow<u8>,
