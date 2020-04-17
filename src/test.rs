@@ -136,7 +136,8 @@ quickcheck! {
             assert_ne!(0, try_demangle(&m, Some(&mut len), None));
             assert_ne!(0, try_demangle(&m, None, None));
 
-            let mut result : Vec<u8> = Vec::with_capacity(128);
+            // Capacity is arbitrary as long as there is some minimal backing in place
+            let mut result : Vec<u8> = Vec::with_capacity(1);
             let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
             assert_ne!(0, try_demangle(&m, Some(&mut len), Some(ptr)));
             assert_ne!(0, try_demangle(&m, None, Some(ptr)));
