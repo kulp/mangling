@@ -78,21 +78,23 @@ fn test_mangle() {
         assert_eq!(want, &got);
 
         let got = {
-            let mut result : *mut c_char = core::ptr::null_mut();
-            let mut len : usize = 0;
+            // worst-case upper bound is 5x the input length
+            // (asymptotic upper bound is 3.5x the input length)
+            let mut result : Vec<u8> = Vec::with_capacity(want.len() * 5);
+            let mut len : usize = result.capacity();
             {
-                use std::ffi::CString;
-
                 let input = match unmangled.len() {
                     0 => None,
                     _ => Some(unsafe { &*(unmangled.as_ptr() as *const c_char) }),
                 };
-                let success =
-                    mangling_mangle(unmangled.len(), input, Some(&mut len), Some(&mut result));
+                let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
+                let success = mangling_mangle(unmangled.len(), input, Some(&mut len), Some(ptr));
                 assert_eq!(success, 0);
-                assert!(!result.is_null());
-                // CString takes ownership of raw pointer, so explicit freeing is required here
-                unsafe { CString::from_raw(result).into_string().unwrap() }
+                assert!(len <= result.capacity());
+                unsafe {
+                    result.set_len(len);
+                }
+                String::from_utf8(result).unwrap()
             }
         };
         assert_eq!(want, &got);
@@ -111,10 +113,10 @@ fn test_mangle() {
 ///
 /// Example usage, in C:
 /// ```c
-/// int mangling_mangle(size_t insize, const char *inptr, size_t *outsize, char **outstr);
+/// int mangling_mangle(size_t insize, const char *inptr, size_t *outsize, char *outstr);
 /// char result[128];
 /// size_t outsize = sizeof result;
-/// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, &result);
+/// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, result);
 /// fwrite(result, 1, outsize, stdout);
 /// ```
 ///
@@ -128,10 +130,8 @@ pub extern "C" fn mangling_mangle(
     insize : usize,
     inptr : Option<&c_char>,
     outsize : Option<&mut usize>,
-    outstr : Option<&mut *mut c_char>,
+    outstr : Option<&mut c_char>,
 ) -> c_int {
-    use std::ffi::CString;
-
     match (inptr, insize) {
         (None, 0) | (Some(_), _) => {
             let inptr = match inptr {
@@ -142,13 +142,18 @@ pub extern "C" fn mangling_mangle(
                 None => &[],
             };
             let mangled = mangle(inptr);
-            if let Some(outsize) = outsize {
-                *outsize = mangled.len();
-            }
+            let len = match (outsize, mangled.len()) {
+                (None, _) => 0,
+                (Some(need), have) => {
+                    *need = (*need).min(have);
+                    *need
+                },
+            };
             if let Some(outstr) = outstr {
-                *outstr = CString::new(mangled)
-                    .map(CString::into_raw)
-                    .unwrap_or(core::ptr::null_mut());
+                let raw = mangled.as_ptr() as *mut c_char;
+                unsafe {
+                    raw.copy_to_nonoverlapping(outstr, len);
+                }
             }
 
             0 // indicate success
