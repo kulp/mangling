@@ -99,21 +99,23 @@ fn test_mangle() {
     }
 }
 
-/// Provides a C-compatible interface to the `mangle` function, returning a zero value upon
-/// success and populating out-parameters with the size and location of a newly-allocated C string
-/// that must be passed to `mangling_mangle_destroy` when destruction is desired.
+/// Provides a C-compatible interface to the `mangle` function, and:
+/// - returns a zero value upon success and a non-zero value on error,
+/// - has well-defined behavior for any combination of null pointer arguments,
+/// - copies a sequence of non-NUL bytes into a buffer provided by the caller,
+/// - writes no more bytes than specified in `outsize`,
+/// - updates the size referenced by `outsize` with the number of bytes copied through `outstr`.
 ///
-/// Failure is indicated with a non-zero exit code if and only if a null pointer was passed in
-/// while the supplied length was nonzero. A NUL (`'\0'`) byte in the input is mangled like any
-/// other byte, and does not terminate the input.
+/// Failure is indicated with a non-zero exit code under the following conditions:
+/// - a null pointer was passed in for the `inptr` argument but the `insize` is nonzero.
 ///
 /// Example usage, in C:
 /// ```c
 /// int mangling_mangle(size_t insize, const char *inptr, size_t *outsize, char **outstr);
-/// size_t outsize = 0;
-/// char *result = NULL;
+/// char result[128];
+/// size_t outsize = sizeof result;
 /// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, &result);
-/// puts(result);
+/// fwrite(result, 1, outsize, stdout);
 /// ```
 ///
 /// # Safety
