@@ -234,46 +234,23 @@ fn test_demangle() -> ManglingResult<()> {
         let got : Vec<u8> = demangle(mangled)?;
         assert_eq!(want, got);
 
-        {
-            // worst-case upper bound is 1x the input length, with a lower bound of 1
-            let mut result : Vec<u8> = Vec::with_capacity(1 + want.len());
-            {
-                let input = match mangled.len() {
-                    0 => None,
-                    _ => Some(unsafe { &*(mangled.as_ptr() as *const c_char) }),
-                };
-                let success = mangling_demangle(mangled.len(), input, Some(&mut 0), None);
-                assert_eq!(success, 0);
-            };
-            {
-                let input = match mangled.len() {
-                    0 => None,
-                    _ => Some(unsafe { &*(mangled.as_ptr() as *const c_char) }),
-                };
-                let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
-                let success = mangling_demangle(mangled.len(), input, None, Some(ptr));
-                assert_eq!(success, 0);
-            };
-        }
+        assert_eq!(0, try_demangle(mangled, Some(&mut 0), None));
+        // worst-case upper bound is 1x the input length, with a lower bound of 1
+        let mut result : Vec<u8> = Vec::with_capacity(1 + want.len());
+        let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
+        assert_eq!(0, try_demangle(mangled, None, Some(ptr)));
 
         let got = {
             // worst-case upper bound is 1x the input length, with a lower bound of 1
             let mut result : Vec<u8> = Vec::with_capacity(1 + want.len());
             let mut len : usize = result.capacity();
-            {
-                let input = match mangled.len() {
-                    0 => None,
-                    _ => Some(unsafe { &*(mangled.as_ptr() as *const c_char) }),
-                };
-                let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
-                let success = mangling_demangle(mangled.len(), input, Some(&mut len), Some(ptr));
-                assert_eq!(success, 0);
-                assert!(len <= result.capacity());
-                unsafe {
-                    result.set_len(len);
-                }
-                result
+            let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
+            assert_eq!(0, try_demangle(mangled, Some(&mut len), Some(ptr)));
+            assert!(len <= result.capacity());
+            unsafe {
+                result.set_len(len);
             }
+            result
         };
         assert_eq!(want, got);
     }
@@ -281,9 +258,7 @@ fn test_demangle() -> ManglingResult<()> {
     for mangled in DEMANGLE_BAD {
         assert!(demangle(mangled).is_err());
         let mut len = 0;
-        let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
-        let success = mangling_demangle(mangled.len(), Some(input), Some(&mut len), None);
-        assert_ne!(success, 0);
+        assert_ne!(0, try_demangle(mangled, Some(&mut len), None));
     }
 
     Ok(())
