@@ -30,13 +30,13 @@ fn mangling() {
             String::from_utf8(result).unwrap()
         };
         assert_eq!(want, &got);
-
-        let success = mangling_mangle(1, None, None, None);
-        assert_ne!(success, 0);
-
-        let success = mangling_mangle(0, None, None, None);
-        assert_eq!(success, 0);
     }
+
+    let success = mangling_mangle(1, None, None, None);
+    assert_ne!(success, 0);
+
+    let success = mangling_mangle(0, None, None, None);
+    assert_eq!(success, 0);
 }
 
 #[test]
