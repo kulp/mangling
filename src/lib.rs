@@ -48,7 +48,9 @@ pub type ManglingResult<T> = std::result::Result<T, Box<dyn Error>>;
 #[cfg(test)]
 mod test;
 
-/// Provides a C-compatible interface to the `mangle` function, and:
+/// Provides a C-compatible interface to the `mangle` function.
+///
+/// This function:
 /// - returns a zero value upon success and a non-zero value on error,
 /// - has well-defined behavior for any combination of null pointer arguments,
 /// - copies a sequence of non-NUL bytes into a buffer provided by the caller,
@@ -175,7 +177,9 @@ where
     unsafe { String::from_utf8_unchecked(result) }
 }
 
-/// Provides a C-compatible interface to the `demangle` function, and:
+/// Provides a C-compatible interface to the `demangle` function.
+///
+/// This function:
 /// - returns a zero value upon success and a non-zero value on error,
 /// - has well-defined behavior for any combination of null pointer arguments,
 /// - copies a sequence of bytes (possibly including NUL) into a buffer provided by the caller,
