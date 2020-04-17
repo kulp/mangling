@@ -91,6 +91,7 @@ fn test_mangle() {
                     mangling_mangle(unmangled.len(), input, Some(&mut len), Some(&mut result));
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
+                // CString takes ownership of raw pointer, so explicit freeing is required here
                 unsafe { CString::from_raw(result).into_string().unwrap() }
             }
         };
