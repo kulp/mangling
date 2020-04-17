@@ -50,6 +50,11 @@ mod test;
 
 /// Provides a C-compatible interface to the `mangle` function.
 ///
+/// This function is compatible with the C function declaration:
+/// ```c
+/// int mangling_mangle(size_t insize, const char *inptr, size_t *outsize, char *outstr);
+/// ```
+///
 /// This function:
 /// - returns a zero value upon success and a non-zero value on error,
 /// - has well-defined behavior for any combination of null pointer arguments,
@@ -62,7 +67,6 @@ mod test;
 ///
 /// Example usage, in C:
 /// ```c
-/// int mangling_mangle(size_t insize, const char *inptr, size_t *outsize, char *outstr);
 /// char result[128];
 /// size_t outsize = sizeof result;
 /// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, result);
@@ -184,6 +188,11 @@ where
 
 /// Provides a C-compatible interface to the `demangle` function.
 ///
+/// This function is compatible with the C function declaration:
+/// ```c
+/// int mangling_demangle(size_t insize, const char *instr, size_t *outsize, char *outptr);
+/// ```
+///
 /// This function:
 /// - returns a zero value upon success and a non-zero value on error,
 /// - has well-defined behavior for any combination of null pointer arguments,
@@ -197,7 +206,6 @@ where
 ///
 /// Example usage, in C:
 /// ```c
-/// int mangling_demangle(size_t insize, const char *instr, size_t *outsize, char *outptr);
 /// char result[128];
 /// size_t outsize = sizeof result;
 /// int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, result);

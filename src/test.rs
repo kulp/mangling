@@ -1,3 +1,5 @@
+/// Implements tests for the Rust and C-compatible interfaces to the `mangle` and `demangle`
+/// functions.
 use super::*;
 
 use quickcheck::quickcheck;
