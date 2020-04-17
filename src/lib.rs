@@ -101,7 +101,7 @@ fn test_mangle() {
 
 /// Provides a C-compatible interface to the `mangle` function, returning a zero value upon
 /// success and populating out-parameters with the size and location of a newly-allocated C string
-/// that must be passed to `mangling_destroy` when destruction is desired.
+/// that must be passed to `mangling_mangle_destroy` when destruction is desired.
 ///
 /// Failure is indicated with a non-zero exit code if and only if a null pointer was passed in
 /// while the supplied length was nonzero. A NUL (`'\0'`) byte in the input is mangled like any
@@ -114,7 +114,7 @@ fn test_mangle() {
 /// char *result = NULL;
 /// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, &result);
 /// puts(result);
-/// mangling_destroy(result);
+/// mangling_mangle_destroy(result);
 /// ```
 ///
 /// # Safety
@@ -156,18 +156,21 @@ pub extern "C" fn mangling_mangle(
     }
 }
 
-/// Frees the memory associated with a C string that was previously returned from `mangling_mangle`
-/// or `mangling_demangle`. Invoking `mangling_destroy` with a null pointer is defined as a no-op.
+/// Frees the memory associated with a C string that was previously returned from
+/// `mangling_mangle`. Invoking `mangling_mangle_destroy` with a null pointer is defined as a
+/// no-op.
 ///
 /// # Safety
 /// In order to avoid undefined behavior, this function must be invoked only either either a null
 /// pointer, or else with a pointer that was returned from a previous invocation of
-/// `mangling_mangle` or of `mangling_demangle`. This function must not be invoked more than once
-/// for the same pointer.
+/// `mangling_mangle` (not of `mangling_demangle`). This function must not be invoked more than
+/// once for the same pointer.
 #[no_mangle]
-pub extern "C" fn mangling_destroy(ptr : Option<&*mut c_char>) {
+pub extern "C" fn mangling_mangle_destroy(ptr : Option<&*mut c_char>) {
     if let Some(&ptr) = ptr {
-        unsafe { core::ptr::drop_in_place(ptr) }
+        use std::ffi::CString;
+
+        unsafe { core::mem::drop(CString::from_raw(ptr)) }
     }
 }
 
@@ -258,7 +261,7 @@ fn test_demangle() -> ManglingResult<()> {
                     mangling_demangle(mangled.len(), Some(input), None, Some(&mut result));
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
-                mangling_destroy(Some(&result));
+                mangling_demangle_destroy(Some(&result));
             };
         }
 
@@ -306,7 +309,7 @@ fn test_demangle() -> ManglingResult<()> {
 
 /// Provides a C-compatible interface to the `demangle` function, returning a zero value upon
 /// success and populating out-parameters with the size and location of a newly-allocated block of
-/// memory that must be passed to `mangling_destroy` when destruction is desired.
+/// memory that must be passed to `mangling_demangle_destroy` when destruction is desired.
 ///
 /// Failure is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in for the input string argument
@@ -320,7 +323,7 @@ fn test_demangle() -> ManglingResult<()> {
 /// int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, &result);
 /// fwrite(result, 1, outsize, stdout);
 /// puts(result);
-/// mangling_destroy(result);
+/// mangling_demangle_destroy(result);
 /// ```
 ///
 /// # Safety
@@ -359,6 +362,22 @@ pub extern "C" fn mangling_demangle(
                 _ => 1, // indicate failure
             }
         },
+    }
+}
+
+/// Frees the memory associated with a C string that was previously returned from
+/// `mangling_demangle`. Invoking `mangling_demangle_destroy` with a null pointer is defined as a
+/// no-op.
+///
+/// # Safety
+/// In order to avoid undefined behavior, this function must be invoked only either either a null
+/// pointer, or else with a pointer that was returned from a previous invocation of
+/// `mangling_demangle` (not of `mangling_mangle`). This function must not be invoked more than
+/// once for the same pointer.
+#[no_mangle]
+pub extern "C" fn mangling_demangle_destroy(ptr : Option<&*mut c_char>) {
+    if let Some(&ptr) = ptr {
+        unsafe { core::ptr::drop_in_place(ptr) }
     }
 }
 
