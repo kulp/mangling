@@ -24,7 +24,7 @@ pub(crate) const MANGLE_LIST : &[(&str, &str)] = &[
 pub(crate) const DEMANGLE_BAD : &[&str] = &["bad", "_1", "_0", "_03x", "_\u{0}"];
 
 #[test]
-fn test_mangle() {
+fn mangling() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want = mangled;
 
@@ -34,7 +34,7 @@ fn test_mangle() {
 }
 
 #[test]
-fn test_demangle() -> ManglingResult<()> {
+fn demangling() -> ManglingResult<()> {
     for (unmangled, mangled) in MANGLE_LIST {
         let want : Vec<u8> = (*unmangled).to_string().into();
         let got : Vec<u8> = demangle(mangled)?;
@@ -50,11 +50,11 @@ fn test_demangle() -> ManglingResult<()> {
 
 quickcheck! {
     #[allow(clippy::result_unwrap_used)]
-    fn test_mangling_roundtrip(rs : Vec<u8>) -> bool {
+    fn mangling_roundtrip(rs : Vec<u8>) -> bool {
         rs == demangle(&mangle(rs.clone())).unwrap()
     }
 
-    fn test_demangled_corrupted(deletion : usize) -> () {
+    fn demangling_corrupted(deletion : usize) -> () {
         for (_, mangled) in MANGLE_LIST {
             let (_, v) : (Vec<_>, Vec<_>) = mangled.chars().enumerate().filter(|&(i, _)| i != deletion % mangled.len()).unzip();
             let m : String = v.into_iter().collect();
@@ -65,7 +65,7 @@ quickcheck! {
 
 quickcheck! {
     #[allow(clippy::result_unwrap_used)]
-    fn test_hexify(byte : u8) -> () {
+    fn hexing(byte : u8) -> () {
         let got = hexify(byte);
         let want = format!("{:02x}", byte);
         assert_eq!(got, want.as_bytes());
