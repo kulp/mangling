@@ -256,6 +256,7 @@ fn test_demangle() -> ManglingResult<()> {
                 let success =
                     mangling_demangle(mangled.len(), Some(input), None, Some(&mut result));
                 assert_eq!(success, 0);
+                assert!(!result.is_null());
                 mangling_destroy(Some(&result));
             };
         }
