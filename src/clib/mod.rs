@@ -44,6 +44,7 @@ mod test;
 /// ```
 ///
 /// # Example
+/// In C:
 /// ```c
 /// char result[128];
 /// size_t outsize = sizeof result;
@@ -114,6 +115,7 @@ pub extern "C" fn mangling_mangle(
 /// ```
 ///
 /// # Example
+/// In C:
 /// ```c
 /// char result[128];
 /// size_t outsize = sizeof result;
