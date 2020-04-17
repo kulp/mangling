@@ -325,5 +325,3 @@ fn dehexify(string : &[u8]) -> ManglingResult<Vec<u8>> {
         .map(|v| u8::from_str_radix(v?, 16).map_err(Into::into))
         .collect()
 }
-
-
