@@ -136,7 +136,7 @@ pub extern "C" fn mangling_mangle(
         (None, 0) | (Some(_), _) => {
             let inptr = match inptr {
                 Some(inptr) => unsafe {
-                    let inptr = &*(inptr as *const c_char as *const u8);
+                    let inptr = inptr as *const c_char as *const u8;
                     std::slice::from_raw_parts(inptr, insize)
                 },
                 None => &[],
