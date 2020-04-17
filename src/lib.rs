@@ -44,7 +44,6 @@ use std::str::FromStr;
 /// A generic Result type for functions in this module
 pub type ManglingResult<T> = std::result::Result<T, Box<dyn Error>>;
 
-/// Provides C-compatible interfaces to `mangle` and `demangle` functions.
 pub mod clib;
 
 #[cfg(test)]
