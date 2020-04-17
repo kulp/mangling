@@ -235,40 +235,44 @@ fn test_demangle() -> ManglingResult<()> {
         assert_eq!(want, got);
 
         {
-            let mut result : *mut c_char = core::ptr::null_mut();
+            // worst-case upper bound is 1x the input length, with a lower bound of 1
+            let mut result : Vec<u8> = Vec::with_capacity(1 + want.len());
             {
-                let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
-                let success = mangling_demangle(mangled.len(), Some(input), Some(&mut 0), None);
+                let input = match mangled.len() {
+                    0 => None,
+                    _ => Some(unsafe { &*(mangled.as_ptr() as *const c_char) }),
+                };
+                let success = mangling_demangle(mangled.len(), input, Some(&mut 0), None);
                 assert_eq!(success, 0);
             };
             {
-                let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
-                let success =
-                    mangling_demangle(mangled.len(), Some(input), None, Some(&mut result));
+                let input = match mangled.len() {
+                    0 => None,
+                    _ => Some(unsafe { &*(mangled.as_ptr() as *const c_char) }),
+                };
+                let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
+                let success = mangling_demangle(mangled.len(), input, None, Some(ptr));
                 assert_eq!(success, 0);
-                assert!(!result.is_null());
             };
         }
 
         let got = {
-            let mut result : *mut c_char = core::ptr::null_mut();
-            let mut len = 0;
+            // worst-case upper bound is 1x the input length, with a lower bound of 1
+            let mut result : Vec<u8> = Vec::with_capacity(1 + want.len());
+            let mut len : usize = result.capacity();
             {
-                let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
-                let success = mangling_demangle(
-                    mangled.len(),
-                    Some(input),
-                    Some(&mut len),
-                    Some(&mut result),
-                );
+                let input = match mangled.len() {
+                    0 => None,
+                    _ => Some(unsafe { &*(mangled.as_ptr() as *const c_char) }),
+                };
+                let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
+                let success = mangling_demangle(mangled.len(), input, Some(&mut len), Some(ptr));
                 assert_eq!(success, 0);
-                assert!(!result.is_null());
+                assert!(len <= result.capacity());
                 unsafe {
-                    let r = result as *const c_char as *const u8;
-                    let owned = std::slice::from_raw_parts(r, len).to_owned();
-                    std::ptr::drop_in_place(result);
-                    owned
+                    result.set_len(len);
                 }
+                result
             }
         };
         assert_eq!(want, got);
@@ -276,17 +280,10 @@ fn test_demangle() -> ManglingResult<()> {
 
     for mangled in DEMANGLE_BAD {
         assert!(demangle(mangled).is_err());
-        let mut result : *mut c_char = core::ptr::null_mut();
         let mut len = 0;
         let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
-        let success = mangling_demangle(
-            mangled.len(),
-            Some(input),
-            Some(&mut len),
-            Some(&mut result),
-        );
+        let success = mangling_demangle(mangled.len(), Some(input), Some(&mut len), None);
         assert_ne!(success, 0);
-        assert!(result.is_null());
     }
 
     Ok(())
@@ -322,7 +319,7 @@ pub extern "C" fn mangling_demangle(
     insize : usize,
     instr : Option<&c_char>,
     outsize : Option<&mut usize>,
-    outptr : Option<&mut *mut c_char>,
+    outptr : Option<&mut c_char>,
 ) -> c_int {
     match instr {
         None => 1, // null pointer input is considered an error
@@ -336,11 +333,18 @@ pub extern "C" fn mangling_demangle(
 
             match orig {
                 Ok(Ok(x)) => {
-                    if let Some(outsize) = outsize {
-                        *outsize = x.len();
-                    }
+                    let len = match (outsize, x.len()) {
+                        (None, _) => 0,
+                        (Some(need), have) => {
+                            *need = (*need).min(have);
+                            *need
+                        },
+                    };
                     if let Some(outptr) = outptr {
-                        *outptr = Box::into_raw(x.into_boxed_slice()) as *mut c_char;
+                        let raw = x.as_ptr() as *mut c_char;
+                        unsafe {
+                            core::intrinsics::copy_nonoverlapping(raw, outptr, len);
+                        }
                     }
 
                     0 // indicate success
@@ -416,7 +420,7 @@ quickcheck! {
             let m : String = v.into_iter().collect();
             assert!(demangle(&m).is_err());
 
-            fn trial(m: &str, up: Option<&mut usize>, rp: Option<&mut *mut c_char>) {
+            fn trial(m: &str, up: Option<&mut usize>, rp: Option<&mut c_char>) {
                 let input = match m.len() {
                     0 => None,
                     _ => Some(unsafe { &*(m.as_ptr() as *const c_char) }),
@@ -436,13 +440,10 @@ quickcheck! {
             trial(&m, None, None);
 
             let mut len = 0;
-            let mut result : *mut c_char = core::ptr::null_mut();
-            trial(&m, Some(&mut len), Some(&mut result));
-            assert!(result.is_null());
-
-            let mut result : *mut c_char = core::ptr::null_mut();
-            trial(&m, None, Some(&mut result));
-            assert!(result.is_null());
+            let mut result : Vec<u8> = Vec::with_capacity(128);
+            let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
+            trial(&m, Some(&mut len), Some(ptr));
+            trial(&m, None, Some(ptr));
         }
     }
 }
