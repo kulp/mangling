@@ -103,9 +103,9 @@ fn test_mangle() {
 /// success and populating out-parameters with the size and location of a newly-allocated C string
 /// that must be passed to `mangling_destroy` when destruction is desired.
 ///
-/// Failure is indicated with a non-zero exit code if and only if a null pointer was passed in. A
-/// NUL (`'\0'`) byte in the input is mangled like any other byte, and does not terminate the
-/// input.
+/// Failure is indicated with a non-zero exit code if and only if a null pointer was passed in
+/// while the supplied length was nonzero. A NUL (`'\0'`) byte in the input is mangled like any
+/// other byte, and does not terminate the input.
 ///
 /// Example usage, in C:
 /// ```c
@@ -132,7 +132,10 @@ pub extern "C" fn mangling_mangle(
     use std::ffi::CString;
 
     match inptr {
-        None => 1, // null pointer input is considered an error
+        None => match insize {
+            0 => 0, // null pointer with zero length is not an error
+            _ => 1, // null pointer with non-zero length is an error
+        }
         Some(inptr) => {
             let inptr = unsafe {
                 let inptr = &*(inptr as *const c_char as *const u8);
