@@ -166,8 +166,8 @@ pub extern "C" fn mangling_mangle(
 /// `mangling_mangle` (not of `mangling_demangle`). This function must not be invoked more than
 /// once for the same pointer.
 #[no_mangle]
-pub extern "C" fn mangling_mangle_destroy(ptr : Option<&*mut c_char>) {
-    if let Some(&ptr) = ptr {
+pub extern "C" fn mangling_mangle_destroy(ptr : Option<*mut c_char>) {
+    if let Some(ptr) = ptr {
         use std::ffi::CString;
 
         unsafe { core::mem::drop(CString::from_raw(ptr)) }
@@ -261,7 +261,7 @@ fn test_demangle() -> ManglingResult<()> {
                     mangling_demangle(mangled.len(), Some(input), None, Some(&mut result));
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
-                mangling_demangle_destroy(Some(&result));
+                mangling_demangle_destroy(Some(result));
             };
         }
 
@@ -375,8 +375,8 @@ pub extern "C" fn mangling_demangle(
 /// `mangling_demangle` (not of `mangling_mangle`). This function must not be invoked more than
 /// once for the same pointer.
 #[no_mangle]
-pub extern "C" fn mangling_demangle_destroy(ptr : Option<&*mut c_char>) {
-    if let Some(&ptr) = ptr {
+pub extern "C" fn mangling_demangle_destroy(ptr : Option<*mut c_char>) {
+    if let Some(ptr) = ptr {
         unsafe { core::ptr::drop_in_place(ptr) }
     }
 }
