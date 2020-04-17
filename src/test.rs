@@ -24,7 +24,7 @@ pub(crate) const MANGLE_LIST : &[(&str, &str)] = &[
 pub(crate) const DEMANGLE_BAD : &[&str] = &["bad", "_1", "_0", "_03x", "_\u{0}"];
 
 #[test]
-fn test_mangle_native() {
+fn test_mangle() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want = mangled;
 
@@ -34,7 +34,7 @@ fn test_mangle_native() {
 }
 
 #[test]
-fn test_demangle_native() -> ManglingResult<()> {
+fn test_demangle() -> ManglingResult<()> {
     for (unmangled, mangled) in MANGLE_LIST {
         let want : Vec<u8> = (*unmangled).to_string().into();
         let got : Vec<u8> = demangle(mangled)?;
@@ -54,7 +54,7 @@ quickcheck! {
         rs == demangle(&mangle(rs.clone())).unwrap()
     }
 
-    fn test_demangled_corrupted_native(deletion : usize) -> () {
+    fn test_demangled_corrupted(deletion : usize) -> () {
         for (_, mangled) in MANGLE_LIST {
             let (_, v) : (Vec<_>, Vec<_>) = mangled.chars().enumerate().filter(|&(i, _)| i != deletion % mangled.len()).unzip();
             let m : String = v.into_iter().collect();

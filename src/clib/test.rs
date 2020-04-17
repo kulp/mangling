@@ -7,7 +7,7 @@ use crate::test::MANGLE_LIST;
 use crate::test::DEMANGLE_BAD;
 
 #[test]
-fn test_mangle_extern() {
+fn test_mangle() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want = mangled;
 
@@ -40,7 +40,7 @@ fn test_mangle_extern() {
 }
 
 #[test]
-fn test_demangle_extern() {
+fn test_demangle() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want : Vec<u8> = (*unmangled).to_string().into();
 
@@ -80,7 +80,7 @@ fn try_demangle(m : &str, up : Option<&mut usize>, rp : Option<&mut c_char>) -> 
 }
 
 quickcheck! {
-    fn test_demangled_corrupted_extern(deletion : usize) -> () {
+    fn test_demangled_corrupted(deletion : usize) -> () {
         for (_, mangled) in MANGLE_LIST {
             let (_, v) : (Vec<_>, Vec<_>) = mangled.chars().enumerate().filter(|&(i, _)| i != deletion % mangled.len()).unzip();
             let m : String = v.into_iter().collect();
