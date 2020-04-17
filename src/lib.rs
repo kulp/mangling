@@ -83,10 +83,13 @@ fn test_mangle() {
             {
                 use std::ffi::CString;
 
-                let input = unsafe { &*(unmangled.as_ptr() as *const c_char) };
+                let input = match unmangled.len() {
+                    0 => None,
+                    _ => Some(unsafe { &*(unmangled.as_ptr() as *const c_char) }),
+                };
                 let success = mangling_mangle(
                     unmangled.len(),
-                    Some(input),
+                    input,
                     Some(&mut len),
                     Some(&mut result),
                 );
@@ -131,15 +134,14 @@ pub extern "C" fn mangling_mangle(
 ) -> c_int {
     use std::ffi::CString;
 
-    match inptr {
-        None => match insize {
-            0 => 0, // null pointer with zero length is not an error
-            _ => 1, // null pointer with non-zero length is an error
-        }
-        Some(inptr) => {
-            let inptr = unsafe {
-                let inptr = &*(inptr as *const c_char as *const u8);
-                std::slice::from_raw_parts(inptr, insize)
+    match (inptr, insize) {
+        (None, 0) | (Some(_), _) => {
+            let inptr = match inptr {
+                Some(inptr) => unsafe {
+                    let inptr = &*(inptr as *const c_char as *const u8);
+                    std::slice::from_raw_parts(inptr, insize)
+                },
+                None => &[],
             };
             let mangled = mangle(inptr);
             if let Some(outsize) = outsize {
@@ -153,6 +155,7 @@ pub extern "C" fn mangling_mangle(
 
             0 // indicate success
         },
+        _ => 1, // null pointer with non-zero length is an error
     }
 }
 
@@ -436,11 +439,14 @@ quickcheck! {
             assert!(demangle(&m).is_err());
 
             fn trial(m: &str, up: Option<&mut usize>, rp: Option<&mut *mut c_char>) {
-                let input = unsafe { &*(m.as_ptr() as *const c_char) };
+                let input = match m.len() {
+                    0 => None,
+                    _ => Some(unsafe { &*(m.as_ptr() as *const c_char) }),
+                };
                 let success =
                     mangling_demangle(
                         m.len(),
-                        Some(input),
+                        input,
                         up,
                         rp,
                     );
