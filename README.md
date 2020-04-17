@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/mangling.svg)](https://crates.io/crates/mangling)
 [![Rust](https://github.com/kulp/mangling/workflows/Rust/badge.svg)](https://github.com/kulp/mangling/actions?query=workflow%3ARust+branch%3Adevelop)
 [![codecov](https://codecov.io/gh/kulp/mangling/branch/develop/graph/badge.svg)](https://codecov.io/gh/kulp/mangling)
-[![Docs.rs](https://docs.rs/com/badge.svg)](https://docs.rs/mangling/*/mangling/)
+[![Docs.rs](https://docs.rs/mangling/badge.svg)](https://docs.rs/mangling/*/mangling/)
 ![rustc 1.42+](https://img.shields.io/badge/rustc-1.42+-yellow.svg)
 
 ## Purpose
