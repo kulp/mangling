@@ -87,12 +87,8 @@ fn test_mangle() {
                     0 => None,
                     _ => Some(unsafe { &*(unmangled.as_ptr() as *const c_char) }),
                 };
-                let success = mangling_mangle(
-                    unmangled.len(),
-                    input,
-                    Some(&mut len),
-                    Some(&mut result),
-                );
+                let success =
+                    mangling_mangle(unmangled.len(), input, Some(&mut len), Some(&mut result));
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
                 unsafe { CString::from_raw(result).into_string().unwrap() }
@@ -252,22 +248,13 @@ fn test_demangle() -> ManglingResult<()> {
             let mut result : *mut c_char = core::ptr::null_mut();
             {
                 let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
-                let success = mangling_demangle(
-                    mangled.len(),
-                    Some(input),
-                    Some(&mut 0),
-                    None,
-                );
+                let success = mangling_demangle(mangled.len(), Some(input), Some(&mut 0), None);
                 assert_eq!(success, 0);
             };
             {
                 let input = unsafe { &*(mangled.as_ptr() as *const c_char) };
-                let success = mangling_demangle(
-                    mangled.len(),
-                    Some(input),
-                    None,
-                    Some(&mut result),
-                );
+                let success =
+                    mangling_demangle(mangled.len(), Some(input), None, Some(&mut result));
                 assert_eq!(success, 0);
                 mangling_destroy(Some(&result));
             };
