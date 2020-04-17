@@ -70,12 +70,19 @@ const MANGLE_LIST : &[(&str, &str)] = &[
 const DEMANGLE_BAD : &[&str] = &["bad", "_1", "_0", "_03x", "_\u{0}"];
 
 #[test]
-fn test_mangle() {
+fn test_mangle_native() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want = mangled;
 
         let got = mangle(unmangled.bytes());
         assert_eq!(want, &got);
+    }
+}
+
+#[test]
+fn test_mangle_extern() {
+    for (unmangled, mangled) in MANGLE_LIST {
+        let want = mangled;
 
         let got = {
             // worst-case upper bound is 5x the input length
@@ -227,12 +234,20 @@ where
 }
 
 #[test]
-fn test_demangle() -> ManglingResult<()> {
+fn test_demangle_native() -> ManglingResult<()> {
     for (unmangled, mangled) in MANGLE_LIST {
         let want : Vec<u8> = (*unmangled).to_string().into();
-
         let got : Vec<u8> = demangle(mangled)?;
         assert_eq!(want, got);
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_demangle_extern() {
+    for (unmangled, mangled) in MANGLE_LIST {
+        let want : Vec<u8> = (*unmangled).to_string().into();
 
         assert_eq!(0, try_demangle(mangled, Some(&mut 0), None));
         // worst-case upper bound is 1x the input length, with a lower bound of 1
@@ -260,8 +275,6 @@ fn test_demangle() -> ManglingResult<()> {
         let mut len = 0;
         assert_ne!(0, try_demangle(mangled, Some(&mut len), None));
     }
-
-    Ok(())
 }
 
 /// Provides a C-compatible interface to the `demangle` function, and:
@@ -398,7 +411,15 @@ quickcheck! {
         rs == demangle(&mangle(rs.clone())).unwrap()
     }
 
-    fn test_demangled_corrupted(deletion : usize) -> () {
+    fn test_demangled_corrupted_native(deletion : usize) -> () {
+        for (_, mangled) in MANGLE_LIST {
+            let (_, v) : (Vec<_>, Vec<_>) = mangled.chars().enumerate().filter(|&(i, _)| i != deletion % mangled.len()).unzip();
+            let m : String = v.into_iter().collect();
+            assert!(demangle(&m).is_err());
+        }
+    }
+
+    fn test_demangled_corrupted_extern(deletion : usize) -> () {
         for (_, mangled) in MANGLE_LIST {
             let (_, v) : (Vec<_>, Vec<_>) = mangled.chars().enumerate().filter(|&(i, _)| i != deletion % mangled.len()).unzip();
             let m : String = v.into_iter().collect();
