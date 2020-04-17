@@ -408,6 +408,15 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
 }
 
 #[cfg(test)]
+fn try_demangle(m : &str, up : Option<&mut usize>, rp : Option<&mut c_char>) -> c_int {
+    let input = match m.len() {
+        0 => None,
+        _ => Some(unsafe { &*(m.as_ptr() as *const c_char) }),
+    };
+    mangling_demangle(m.len(), input, up, rp)
+}
+
+#[cfg(test)]
 quickcheck! {
     #[allow(clippy::result_unwrap_used)]
     fn test_demangled_mangle(rs : Vec<u8>) -> bool {
@@ -420,30 +429,15 @@ quickcheck! {
             let m : String = v.into_iter().collect();
             assert!(demangle(&m).is_err());
 
-            fn trial(m: &str, up: Option<&mut usize>, rp: Option<&mut c_char>) {
-                let input = match m.len() {
-                    0 => None,
-                    _ => Some(unsafe { &*(m.as_ptr() as *const c_char) }),
-                };
-                let success =
-                    mangling_demangle(
-                        m.len(),
-                        input,
-                        up,
-                        rp,
-                    );
-                assert_ne!(success, 0);
-            }
-
             let mut len = 0;
-            trial(&m, Some(&mut len), None);
-            trial(&m, None, None);
+            assert_ne!(0, try_demangle(&m, Some(&mut len), None));
+            assert_ne!(0, try_demangle(&m, None, None));
 
             let mut len = 0;
             let mut result : Vec<u8> = Vec::with_capacity(128);
             let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
-            trial(&m, Some(&mut len), Some(ptr));
-            trial(&m, None, Some(ptr));
+            assert_ne!(0, try_demangle(&m, Some(&mut len), Some(ptr)));
+            assert_ne!(0, try_demangle(&m, None, Some(ptr)));
         }
     }
 }
