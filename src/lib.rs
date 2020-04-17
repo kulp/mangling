@@ -21,7 +21,7 @@
 //! Note that despite the description above, the current implementation does not
 //! actually use regular expressions for matching.
 //!
-//! For example:
+//! # Example
 //! ```
 //! # use mangling;
 //! let input = "abc/123x".as_bytes();

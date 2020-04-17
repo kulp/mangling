@@ -22,7 +22,7 @@ mod test;
 /// Failure is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in for the `inptr` argument but the `insize` is nonzero.
 ///
-/// Example usage, in C:
+/// # Example
 /// ```c
 /// char result[128];
 /// size_t outsize = sizeof result;
@@ -90,7 +90,7 @@ pub extern "C" fn mangling_mangle(
 /// - a null pointer was passed in for the `instr` argument but the `insize` is nonzero, or
 /// - the input string was not a valid mangled name.
 ///
-/// Example usage, in C:
+/// # Example
 /// ```c
 /// char result[128];
 /// size_t outsize = sizeof result;
