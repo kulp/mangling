@@ -82,20 +82,18 @@ fn test_mangle() {
             // (asymptotic upper bound is 3.5x the input length)
             let mut result : Vec<u8> = Vec::with_capacity(want.len() * 5);
             let mut len : usize = result.capacity();
-            {
-                let input = match unmangled.len() {
-                    0 => None,
-                    _ => Some(unsafe { &*(unmangled.as_ptr() as *const c_char) }),
-                };
-                let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
-                let success = mangling_mangle(unmangled.len(), input, Some(&mut len), Some(ptr));
-                assert_eq!(success, 0);
-                assert!(len <= result.capacity());
-                unsafe {
-                    result.set_len(len);
-                }
-                String::from_utf8(result).unwrap()
+            let input = match unmangled.len() {
+                0 => None,
+                _ => Some(unsafe { &*(unmangled.as_ptr() as *const c_char) }),
+            };
+            let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
+            let success = mangling_mangle(unmangled.len(), input, Some(&mut len), Some(ptr));
+            assert_eq!(success, 0);
+            assert!(len <= result.capacity());
+            unsafe {
+                result.set_len(len);
             }
+            String::from_utf8(result).unwrap()
         };
         assert_eq!(want, &got);
     }
