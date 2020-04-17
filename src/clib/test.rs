@@ -69,6 +69,13 @@ fn demangling() {
         let mut len = 0;
         assert_ne!(0, try_demangle(mangled, Some(&mut len), None));
     }
+
+    let success = mangling_demangle(1, None, None, None);
+    assert_ne!(success, 0);
+
+    // Demangling an empty string is not meaningful, and must fail
+    let success = mangling_demangle(0, None, None, None);
+    assert_ne!(success, 0);
 }
 
 fn try_demangle(m : &str, up : Option<&mut usize>, rp : Option<&mut c_char>) -> c_int {
