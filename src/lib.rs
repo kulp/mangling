@@ -310,7 +310,6 @@ fn test_demangle() -> ManglingResult<()> {
 /// size_t outsize = sizeof result;
 /// int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, result);
 /// fwrite(result, 1, outsize, stdout);
-/// puts(result);
 /// ```
 ///
 /// # Safety
