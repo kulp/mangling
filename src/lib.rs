@@ -281,7 +281,7 @@ fn test_demangle() -> ManglingResult<()> {
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
                 unsafe {
-                    let r = &*(result as *const c_char as *const u8);
+                    let r = result as *const c_char as *const u8;
                     let owned = std::slice::from_raw_parts(r, len).to_owned();
                     std::ptr::drop_in_place(result);
                     owned
