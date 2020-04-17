@@ -74,6 +74,10 @@ fn test_demangle_native() -> ManglingResult<()> {
         assert_eq!(want, got);
     }
 
+    for mangled in DEMANGLE_BAD {
+        assert!(demangle(mangled).is_err());
+    }
+
     Ok(())
 }
 
