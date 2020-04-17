@@ -50,12 +50,6 @@ mod test;
 /// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, result);
 /// fwrite(result, 1, outsize, stdout);
 /// ```
-///
-/// # Safety
-/// In order to avoid undefined behavior, this function must be called with `inptr` pointing to a
-/// string of bytes at least `insize` in length, or else `inptr` must be a null pointer. No
-/// requirement is levied on the contents of the referenced memory, besides that it must be
-/// readable.
 #[no_mangle]
 pub extern "C" fn mangling_mangle(
     insize : usize,
@@ -126,12 +120,6 @@ pub extern "C" fn mangling_mangle(
 /// int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, result);
 /// fwrite(result, 1, outsize, stdout);
 /// ```
-///
-/// # Safety
-/// In order to avoid undefined behavior, this function must be called with `instr` pointing to a
-/// string of bytes at least `insize` in length, or else `instr` must be a null pointer. No
-/// requirement is levied on the contents of the referenced memory, besides that it must be
-/// readable.
 #[no_mangle]
 pub extern "C" fn mangling_demangle(
     insize : usize,
