@@ -433,7 +433,6 @@ quickcheck! {
             assert_ne!(0, try_demangle(&m, Some(&mut len), None));
             assert_ne!(0, try_demangle(&m, None, None));
 
-            let mut len = 0;
             let mut result : Vec<u8> = Vec::with_capacity(128);
             let ptr = unsafe { &mut *(result.as_mut_ptr() as *mut c_char) };
             assert_ne!(0, try_demangle(&m, Some(&mut len), Some(ptr)));
