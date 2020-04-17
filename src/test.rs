@@ -60,6 +60,9 @@ fn test_mangle_extern() {
 
         let success = mangling_mangle(1, None, None, None);
         assert_ne!(success, 0);
+
+        let success = mangling_mangle(0, None, None, None);
+        assert_eq!(success, 0);
     }
 }
 
