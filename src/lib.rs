@@ -407,7 +407,7 @@ fn try_demangle(m : &str, up : Option<&mut usize>, rp : Option<&mut c_char>) -> 
 #[cfg(test)]
 quickcheck! {
     #[allow(clippy::result_unwrap_used)]
-    fn test_demangled_mangle(rs : Vec<u8>) -> bool {
+    fn test_mangling_roundtrip(rs : Vec<u8>) -> bool {
         rs == demangle(&mangle(rs.clone())).unwrap()
     }
 
