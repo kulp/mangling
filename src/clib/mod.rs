@@ -22,6 +22,20 @@ mod test;
 /// Failure is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in for the `inptr` argument but the `insize` is nonzero.
 ///
+/// Notably, null pointers (`None` in the Rust interface) are not inherently erroneous:
+/// ```
+/// # use mangling::clib::*;
+/// let success = mangling_mangle(0, None, None, None);
+/// assert_eq!(0, success);
+/// ```
+/// However, if the `insize` parameter indicates that some data should be expected, then a null
+/// pointer is an error, though still safe:
+/// ```
+/// # use mangling::clib::*;
+/// let success = mangling_mangle(1, None, None, None);
+/// assert_ne!(0, success);
+/// ```
+///
 /// # Example
 /// ```c
 /// char result[128];
@@ -88,6 +102,15 @@ pub extern "C" fn mangling_mangle(
 ///
 /// Failure is indicated with a non-zero exit code under the following conditions:
 /// - the input string was not a valid mangled name.
+///
+/// A null input pointers (`None` in the Rust interface) is not erroneous per se, but since at best
+/// it can represent only an empty string, which is never demanglable, an error is reported:
+/// ```
+/// # use mangling::clib::*;
+/// // Demangling an empty string is not meaningful, and must fail
+/// let success = mangling_demangle(0, None, None, None);
+/// assert_ne!(success, 0);
+/// ```
 ///
 /// # Example
 /// ```c
