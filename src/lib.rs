@@ -114,7 +114,6 @@ fn test_mangle() {
 /// char *result = NULL;
 /// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, &result);
 /// puts(result);
-/// mangling_mangle_destroy(result);
 /// ```
 ///
 /// # Safety
@@ -153,24 +152,6 @@ pub extern "C" fn mangling_mangle(
             0 // indicate success
         },
         _ => 1, // null pointer with non-zero length is an error
-    }
-}
-
-/// Frees the memory associated with a C string that was previously returned from
-/// `mangling_mangle`. Invoking `mangling_mangle_destroy` with a null pointer is defined as a
-/// no-op.
-///
-/// # Safety
-/// In order to avoid undefined behavior, this function must be invoked only either either a null
-/// pointer, or else with a pointer that was returned from a previous invocation of
-/// `mangling_mangle` (not of `mangling_demangle`). This function must not be invoked more than
-/// once for the same pointer.
-#[no_mangle]
-pub extern "C" fn mangling_mangle_destroy(ptr : Option<*mut c_char>) {
-    if let Some(ptr) = ptr {
-        use std::ffi::CString;
-
-        unsafe { core::mem::drop(CString::from_raw(ptr)) }
     }
 }
 
@@ -261,7 +242,6 @@ fn test_demangle() -> ManglingResult<()> {
                     mangling_demangle(mangled.len(), Some(input), None, Some(&mut result));
                 assert_eq!(success, 0);
                 assert!(!result.is_null());
-                mangling_demangle_destroy(Some(result));
             };
         }
 
@@ -323,7 +303,6 @@ fn test_demangle() -> ManglingResult<()> {
 /// int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, &result);
 /// fwrite(result, 1, outsize, stdout);
 /// puts(result);
-/// mangling_demangle_destroy(result);
 /// ```
 ///
 /// # Safety
@@ -362,22 +341,6 @@ pub extern "C" fn mangling_demangle(
                 _ => 1, // indicate failure
             }
         },
-    }
-}
-
-/// Frees the memory associated with a C string that was previously returned from
-/// `mangling_demangle`. Invoking `mangling_demangle_destroy` with a null pointer is defined as a
-/// no-op.
-///
-/// # Safety
-/// In order to avoid undefined behavior, this function must be invoked only either either a null
-/// pointer, or else with a pointer that was returned from a previous invocation of
-/// `mangling_demangle` (not of `mangling_mangle`). This function must not be invoked more than
-/// once for the same pointer.
-#[no_mangle]
-pub extern "C" fn mangling_demangle_destroy(ptr : Option<*mut c_char>) {
-    if let Some(ptr) = ptr {
-        unsafe { core::ptr::drop_in_place(ptr) }
     }
 }
 
