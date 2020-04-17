@@ -292,20 +292,23 @@ fn test_demangle() -> ManglingResult<()> {
     Ok(())
 }
 
-/// Provides a C-compatible interface to the `demangle` function, returning a zero value upon
-/// success and populating out-parameters with the size and location of a newly-allocated block of
-/// memory that must be passed to `mangling_demangle_destroy` when destruction is desired.
+/// Provides a C-compatible interface to the `demangle` function, and:
+/// - returns a zero value upon success and a non-zero value on error,
+/// - has well-defined behavior for any combination of null pointer arguments,
+/// - copies a sequence of bytes (possibly including NUL) into a buffer provided by the caller,
+/// - writes no more bytes than specified in `outsize`,
+/// - updates the size referenced by `outsize` with the number of bytes copied through `outptr`.
 ///
 /// Failure is indicated with a non-zero exit code under the following conditions:
-/// - a null pointer was passed in for the input string argument
-/// - the input string was not a valid mangled name
+/// - a null pointer was passed in for the `instr` argument but the `insize` is nonzero, or
+/// - the input string was not a valid mangled name.
 ///
 /// Example usage, in C:
 /// ```c
-/// int mangling_demangle(size_t insize, const char *instr, size_t *outsize, char **outptr);
-/// size_t outsize = 0;
-/// char *result = NULL;
-/// int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, &result);
+/// int mangling_demangle(size_t insize, const char *instr, size_t *outsize, char *outptr);
+/// char result[128];
+/// size_t outsize = sizeof result;
+/// int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, result);
 /// fwrite(result, 1, outsize, stdout);
 /// puts(result);
 /// ```
