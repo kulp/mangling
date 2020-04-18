@@ -1,2 +1,5 @@
 ignore:
     - "**/test.rs"
+coverage:
+    range: 75..95
+    precision: 1
