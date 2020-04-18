@@ -52,10 +52,25 @@ mod test;
 /// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
 /// use as an identifier in the C language.
 ///
-/// The length of the output string in bytes:
-/// - is always longer than the input string,
-/// - is at most five bytes for one-byte inputs, and
-/// - is at most 3.5 times as long as the input for any multi-byte input.
+/// The length N of the output in bytes, relative to the input length K, follows these rules, which
+/// are considered to be requirements on future implementations:
+/// - N > K
+/// - N ≤ 5 * K + 1
+/// - N ≤ ceil(3.5 * K) + 2 when K > 1
+///
+/// Additionally, the current implementation satisfies these additional constraints:
+/// - N = 1 + ceil(log10(K + 1)) + K when input matches `^[A-Za-z_]*$`
+/// - N = 2 + ceil(log10(K + 1)) + 2 * K when input matches `^[^A-Za-z_]+$`
+///
+/// # Examples
+/// ```
+/// # use mangling::mangle;
+/// assert_eq!("_",        mangle("".bytes()));
+/// assert_eq!("_1a",      mangle("a".bytes()));
+/// assert_eq!("_01_2f",   mangle("/".bytes()));
+/// assert_eq!("_01_2f1a", mangle("/a".bytes()));
+/// assert_eq!("_1a01_2f", mangle("a/".bytes()));
+/// ```
 pub fn mangle<T>(name : impl IntoIterator<Item = T>) -> String
 where
     T : core::borrow::Borrow<u8>,

@@ -54,6 +54,15 @@ quickcheck! {
         rs == demangle(&mangle(rs.clone())).unwrap()
     }
 
+    fn length_promises(orig : Vec<u8>) -> () {
+        let k = orig.len();
+        let mangled = mangle(orig);
+        let n = mangled.len();
+        assert!(n > k);
+        assert!(n <= 5 * k + 1);
+        assert!(k <= 1 || n <= (3.5 * k as f64).ceil() as usize + 2);
+    }
+
     fn demangling_corrupted(deletion : usize) -> () {
         for (_, mangled) in MANGLE_LIST {
             let (_, v) : (Vec<_>, Vec<_>) = mangled.chars().enumerate().filter(|&(i, _)| i != deletion % mangled.len()).unzip();
