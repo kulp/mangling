@@ -1,38 +1,25 @@
-//! This module provides for converting arbitrary byte streams into valid
-//! C-language identifiers and back again.
+//! This crate provides for converting arbitrary byte streams into valid
+//! C-language identifiers ("mangled names") and back again.
 //!
-//! The resulting symbol begins with an underscore character `_`, and is
-//! followed by zero or more groups of two types: printables and non-printables.
-//! The content of the input byte stream determines which type of group comes
-//! first, after which the two types alternate strictly.
+//! # Rationale
+//! The functionality of this crate was hoisted out of a compiler that needed to translate
+//! identifiers for Java symbols (e.g. method names and signatures) into symbols valid for the
+//! generated assembly language. Although the mangling process can encode any stream of bytes into
+//! a (longer) string of ASCII characters, and then convert the output back again, it is not
+//! intended to provide general encoding/decoding facilities. Instead, it is meant to provide an
+//! easy, reliable way for compiler writers to generate human-recognizable identifiers without
+//! having to invent their own mangling scheme.
 //!
-//! - A printable group corresponds to the longest substring of the input that
-//! can be consumed while matching the (case-insensitive) regular expression
-//! `[a-z][a-z0-9_]*`. The mangled form is `Naaa` where `N` is the unbounded
-//! decimal length of the substring in the original input, and `aaa` is the
-//! literal substring.
-//! - A non-printable group represents the shortest substring in the input that
-//! can be consumed before a printable substring begins to match. The mangled
-//! form is `0N_xxxxxx` where `0` and `_` are literal, `N` is the unbounded
-//! decimal length of the substring in the original input, and `xxxxxx` is the
-//! lowercase hexadecimal expansion of the original bytes (two hexadecimal
-//! digits per input byte, most significant nybble first).
+//! # Requirements
+//! 1. Totality (every byte stream can be encoded into a unique mangled name)
+//! 1. Injectivity (each mangled name can be decoded to a unique byte stream)
 //!
-//! Note that despite the description above, the current implementation does not
-//! actually use regular expressions for matching.
-//!
-//! # Example
-//! ```
-//! # use mangling;
-//! let input = "abc/123x".as_bytes();
-//! let expect = "_3abc04_2f3132331x";
-//!
-//! let output = mangling::mangle(input);
-//! assert_eq!(output, expect);
-//!
-//! let reverse = mangling::demangle(expect).unwrap();
-//! assert_eq!(reverse, input);
-//! ```
+//! # Goals
+//! 1. Correctness (the implementation matches its documented behavior)
+//! 1. Consistency (the implementation behaves in a predictable manner)
+//! 1. Readability (mangled names are visibly related to input streams)
+//! 1. Compactness (mangled names are comparable in length to inputs)
+//! 1. Performance (processing is computationally efficient in time and space)
 #![deny(clippy::cmp_null)]
 #![deny(clippy::extra_unused_lifetimes)]
 #![deny(clippy::missing_safety_doc)]
@@ -82,6 +69,27 @@ mod test;
 /// }
 ///
 /// ```
+///
+/// # Implementation details
+/// The resulting symbol begins with an underscore character `_`, and is
+/// followed by zero or more groups of two types: printables and non-printables.
+/// The content of the input byte stream determines which type of group comes
+/// first, after which the two types alternate strictly.
+///
+/// - A printable group corresponds to the longest substring of the input that
+/// can be consumed while matching the (case-insensitive) regular expression
+/// `[a-z][a-z0-9_]*`. The mangled form is `Naaa` where `N` is the unbounded
+/// decimal length of the substring in the original input, and `aaa` is the
+/// literal substring.
+/// - A non-printable group represents the shortest substring in the input that
+/// can be consumed before a printable substring begins to match. The mangled
+/// form is `0N_xxxxxx` where `0` and `_` are literal, `N` is the unbounded
+/// decimal length of the substring in the original input, and `xxxxxx` is the
+/// lowercase hexadecimal expansion of the original bytes (two hexadecimal
+/// digits per input byte, most significant nybble first).
+///
+/// Note that despite the description above, the current implementation does not
+/// actually use regular expressions for matching.
 pub fn mangle<T>(name : impl IntoIterator<Item = T>) -> String
 where
     T : core::borrow::Borrow<u8>,
