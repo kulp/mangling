@@ -34,6 +34,13 @@ fn mangling() {
 }
 
 #[test]
+fn overflow() {
+    // The following cases were found during fuzzing with `cargo afl fuzz`.
+    let _ = demangle("_0_00000010000000000000000000_0__0");
+    let _ = demangle("_015555000000000000005_0555000000000000050008000000T");
+}
+
+#[test]
 fn demangling() -> ManglingResult<()> {
     for (unmangled, mangled) in MANGLE_LIST {
         let want : Vec<u8> = (*unmangled).to_string().into();

@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   be used only in their `no_mangle` form, from C, so this is being treated as a
   minor, non-breaking change.
 
+### Fixed
+- Guarded against overflowing multiplication when demangling unreasonable inputs.
+
 ## [0.2.0] - 2020-04-17
 ### Added
 - Introduced a C-compatible interface (`mangling_mangle` and `mangling_demangle`).

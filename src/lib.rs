@@ -174,13 +174,14 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
             let (num_str, name) = name.split_at(not_num);
             let len = usize::from_str(core::str::from_utf8(num_str)?)?;
 
+            let hexlen = len.checked_mul(2).ok_or("Index too big");
             let (piece, remainder) = match (num_str, name) {
                 ([b'0', ..], [b'_', rest @ ..]) => (
-                    rest.get(..len * 2)
+                    rest.get(..hexlen?)
                         .map(dehexify)
                         .transpose()?
                         .map(Cow::Owned),
-                    rest.get(len * 2..).map(Cow::Borrowed),
+                    rest.get(hexlen?..).map(Cow::Borrowed),
                 ),
                 ([b'0', ..], ..) => return Err("Bad identifier (expected `_`)".into()),
                 (_, [rest @ ..]) => (
