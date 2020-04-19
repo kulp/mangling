@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2020-04-17
 ### Added
 - Introduced a C-compatible interface (`mangling_mangle` and `mangling_demangle`).
+
 ### Changed
 - Generalized the `mangle` interface to accept `Borrow<u8>` instead of just `u8`.
 
