@@ -31,6 +31,12 @@ fn mangling() {
         };
         assert_eq!(want, &got);
     }
+
+    let success = mangling_mangle(1, None, None, None);
+    assert_ne!(success, 0);
+
+    let success = mangling_mangle(0, None, None, None);
+    assert_eq!(success, 0);
 }
 
 #[test]
@@ -65,6 +71,10 @@ fn demangling() {
     }
 
     let success = mangling_demangle(1, None, None, None);
+    assert_ne!(success, 0);
+
+    // Demangling an empty string is not meaningful, and must fail
+    let success = mangling_demangle(0, None, None, None);
     assert_ne!(success, 0);
 }
 
