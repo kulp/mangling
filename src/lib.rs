@@ -65,11 +65,22 @@ mod test;
 /// # Examples
 /// ```
 /// # use mangling::mangle;
-/// assert_eq!("_",        mangle("".bytes()));
-/// assert_eq!("_1a",      mangle("a".bytes()));
-/// assert_eq!("_01_2f",   mangle("/".bytes()));
-/// assert_eq!("_01_2f1a", mangle("/a".bytes()));
-/// assert_eq!("_1a01_2f", mangle("a/".bytes()));
+/// let mangle_list = &[
+///     (""                , "_"                           ),
+///     ("_123"            , "_4_123"                      ),
+///     ("123"             , "_03_313233"                  ),
+///     ("(II)I"           , "_01_282II01_291I"            ),
+///     ("<init>"          , "_01_3c4init01_3e"            ),
+///     ("<init>:()V"      , "_01_3c4init04_3e3a28291V"    ),
+///     ("GCD"             , "_3GCD"                       ),
+///     ("StackMapTable"   , "_13StackMapTable"            ),
+///     ("java/lang/Object", "_4java01_2f4lang01_2f6Object"),
+/// ];
+///
+/// for &(before, after) in mangle_list {
+///     assert_eq!(after, mangle(before.bytes()));
+/// }
+///
 /// ```
 pub fn mangle<T>(name : impl IntoIterator<Item = T>) -> String
 where
