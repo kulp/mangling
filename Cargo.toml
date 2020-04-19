@@ -1,6 +1,6 @@
 [package]
 name = "mangling"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Darren Kulp <darren@kulp.ch>"]
 edition = "2018"
 keywords = ["mangling", "name-mangling", "identifier"]
