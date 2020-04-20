@@ -28,9 +28,6 @@
 use std::error::Error;
 use std::str::FromStr;
 
-/// A generic Result type for functions in this module
-pub type ManglingResult<T> = std::result::Result<T, Box<dyn Error>>;
-
 pub mod clib;
 
 #[cfg(test)]
@@ -161,8 +158,8 @@ where
 /// # Failures
 /// An `Err` result will be returned if the input is not exactly a validly
 /// mangled symbol, in its entirety and nothing more.
-pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
-    fn demangle_inner(name : &[u8], mut from : Vec<u8>) -> ManglingResult<Vec<u8>> {
+pub fn demangle(name : &str) -> Result<Vec<u8>, Box<dyn Error>> {
+    fn demangle_inner(name : &[u8], mut from : Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
         let found = name.iter().enumerate().find(|(_, x)| !x.is_ascii_digit()).map(|(x, _)| x);
         match (name, found) {
             (&[], _) => {
@@ -212,7 +209,7 @@ fn hexify(byte : u8) -> [u8; 2] {
     [hex(byte >> 4), hex(byte)]
 }
 
-fn dehexify(string : &[u8]) -> ManglingResult<Vec<u8>> {
+fn dehexify(string : &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
     string
         .chunks(2)
         .map(std::str::from_utf8)
