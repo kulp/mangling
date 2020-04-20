@@ -7,6 +7,7 @@ use crate::test::DEMANGLE_BAD;
 use crate::test::MANGLE_LIST;
 
 #[test]
+#[allow(clippy::result_unwrap_used)]
 fn mangling() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want = mangled;

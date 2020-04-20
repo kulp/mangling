@@ -41,6 +41,7 @@ fn overflow() {
 }
 
 #[test]
+#[allow(clippy::result_unwrap_used)]
 fn demangling() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want : Vec<u8> = (*unmangled).to_string().into();
