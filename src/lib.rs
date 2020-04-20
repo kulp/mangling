@@ -163,41 +163,42 @@ where
 /// mangled symbol, in its entirety and nothing more.
 pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
     fn demangle_inner(name : &[u8], mut from : Vec<u8>) -> ManglingResult<Vec<u8>> {
-        if name.is_empty() {
-            from.shrink_to_fit();
-            Ok(from)
-        } else if let Some((not_num, _)) =
-            name.iter().enumerate().find(|(_, x)| !x.is_ascii_digit())
-        {
-            use std::borrow::Cow;
+        let found = name.iter().enumerate().find(|(_, x)| !x.is_ascii_digit()).map(|(x, _)| x);
+        match (name, found) {
+            (&[], _) => {
+                from.shrink_to_fit();
+                Ok(from)
+            },
+            (name, Some(not_num)) => {
+                use std::borrow::Cow;
 
-            let (num_str, name) = name.split_at(not_num);
-            let len = usize::from_str(core::str::from_utf8(num_str)?)?;
+                let (num_str, name) = name.split_at(not_num);
+                let len = usize::from_str(core::str::from_utf8(num_str)?)?;
 
-            let hexlen = len.checked_mul(2).ok_or("Index too big");
-            let (piece, remainder) = match (num_str, name) {
-                ([b'0', ..], [b'_', rest @ ..]) => (
-                    rest.get(..hexlen?)
-                        .map(dehexify)
-                        .transpose()?
-                        .map(Cow::Owned),
-                    rest.get(hexlen?..).map(Cow::Borrowed),
-                ),
-                ([b'0', ..], ..) => return Err("Bad identifier (expected `_`)".into()),
-                (_, [rest @ ..]) => (
-                    rest.get(..len).map(Cow::Borrowed),
-                    rest.get(len..).map(Cow::Borrowed),
-                ),
-            };
+                let hexlen = len.checked_mul(2).ok_or("Index too big");
+                let (piece, remainder) = match (num_str, name) {
+                    ([b'0', ..], [b'_', rest @ ..]) => (
+                        rest.get(..hexlen?)
+                            .map(dehexify)
+                            .transpose()?
+                            .map(Cow::Owned),
+                        rest.get(hexlen?..).map(Cow::Borrowed),
+                    ),
+                    ([b'0', ..], ..) => return Err("Bad identifier (expected `_`)".into()),
+                    (_, [rest @ ..]) => (
+                        rest.get(..len).map(Cow::Borrowed),
+                        rest.get(len..).map(Cow::Borrowed),
+                    ),
+                };
 
-            let check = |x| match x {
-                None => ManglingResult::Err("Input ended too soon".into()),
-                Some(y) => ManglingResult::Ok(y),
-            };
-            from.extend(check(piece)?.as_ref());
-            demangle_inner(check(remainder)?.as_ref(), from)
-        } else {
-            Err("did not find a number".into())
+                let check = |x| match x {
+                    None => ManglingResult::Err("Input ended too soon".into()),
+                    Some(y) => ManglingResult::Ok(y),
+                };
+                from.extend(check(piece)?.as_ref());
+                demangle_inner(check(remainder)?.as_ref(), from)
+            },
+            _ => Err("did not find a number".into()),
         }
     }
 
