@@ -41,18 +41,16 @@ fn overflow() {
 }
 
 #[test]
-fn demangling() -> ManglingResult<()> {
+fn demangling() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want : Vec<u8> = (*unmangled).to_string().into();
-        let got : Vec<u8> = demangle(mangled)?;
+        let got : Vec<u8> = demangle(mangled).unwrap();
         assert_eq!(want, got);
     }
 
     for mangled in DEMANGLE_BAD {
         assert!(demangle(mangled).is_err());
     }
-
-    Ok(())
 }
 
 quickcheck! {
