@@ -23,18 +23,42 @@ mod test;
 /// - returns a zero value upon success and a non-zero value on error,
 /// - has well-defined behavior for any combination of null pointer arguments,
 /// - copies a sequence of non-NUL bytes into a buffer provided by the caller,
-/// - writes no more bytes than specified in `outsize`,
+/// - writes no more bytes than specified in `outsize`, and
 /// - updates the size referenced by `outsize` with the number of bytes copied through `outstr`.
 ///
 /// Failure is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in for the `inptr` argument but the `insize` is nonzero.
 ///
-/// Notably, null pointers (`None` in the Rust interface) are not inherently erroneous:
+/// # Examples
+/// Some of the examples below are shown in (doctested) Rust code to demonstrate correctness, but
+/// it is not expected that Rust users will use the C interfaces.
+///
+/// Null pointers (`None` in the Rust interface) are not inherently erroneous:
 /// ```
 /// # use mangling::clib::*;
 /// let success = mangling_mangle(0, None, None, None);
 /// assert_eq!(0, success);
 /// ```
+/// This behavior can be used to determine the correct size of buffer to allocate (here
+/// demonstrated with Rust code):
+/// ```
+/// # use mangling::clib::*;
+/// # use std::os::raw::c_char;
+/// let input = "hello, world";
+/// let mut len = std::usize::MAX;
+/// let inptr = unsafe { &*(input.as_ptr() as *const c_char) };
+/// let success = mangling_mangle(input.len(), Some(inptr), Some(&mut len), None);
+/// assert_eq!(0, success);
+///
+/// // Now the required buffer size is known in `len` and can be used for allocation
+/// let mut v: Vec<u8> = Vec::with_capacity(len);
+/// let outptr = unsafe { &mut *(v.as_mut_ptr() as *mut c_char) };
+/// let success = mangling_mangle(input.len(), Some(inptr), Some(&mut len), Some(outptr));
+/// unsafe { v.set_len(len); }
+/// assert_eq!(&v[..], "_5hello02_2c205world".as_bytes());
+/// assert_eq!(0, success);
+/// ```
+///
 /// However, if the `insize` parameter indicates that some data should be expected, then a null
 /// pointer is an error, though still safe:
 /// ```
@@ -43,12 +67,13 @@ mod test;
 /// assert_ne!(0, success);
 /// ```
 ///
-/// # Example
-/// In C:
+/// In C, if the output buffer is sized safely according to the bounds specified in the `mangle`
+/// documentation, then a mangling call can be as simple as the following:
 /// ```c
-/// char result[128];
+/// char input[16] = "hello, world",
+/// char result[4 * sizeof input];
 /// size_t outsize = sizeof result;
-/// int success = mangling_mangle(strlen(argv[1]), argv[1], &outsize, result);
+/// int success = mangling_mangle(strlen(input), input, &outsize, result);
 /// fwrite(result, 1, outsize, stdout);
 /// ```
 #[no_mangle]
