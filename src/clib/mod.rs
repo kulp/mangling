@@ -58,6 +58,14 @@ mod test;
 /// assert_eq!(&v[..], "_5hello02_2c205world".as_bytes());
 /// assert_eq!(0, success);
 /// ```
+/// Similar C code might look like this:
+/// ```c
+/// size_t need = -1;
+/// int rc = mangling_mangle(strlen(input), input, &need, NULL);
+/// if (rc != 0) return;
+/// char *buf = malloc(need);
+/// rc = mangling_mangle(strlen(input), input, &need, buf);
+/// ```
 ///
 /// However, if the `insize` parameter indicates that some data should be expected, then a null
 /// pointer is an error, though still safe:
