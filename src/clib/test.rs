@@ -3,8 +3,8 @@ use super::*;
 
 use quickcheck::quickcheck;
 
-use crate::test::MANGLE_LIST;
 use crate::test::DEMANGLE_BAD;
+use crate::test::MANGLE_LIST;
 
 #[test]
 fn mangling() {
@@ -105,4 +105,3 @@ quickcheck! {
         }
     }
 }
-

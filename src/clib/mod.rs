@@ -7,7 +7,7 @@
 //! be changed (without changing the C interface) to allow it.
 use std::os::raw::{c_char, c_int};
 
-use crate::{mangle, demangle};
+use crate::{demangle, mangle};
 
 #[cfg(test)]
 mod test;
@@ -162,4 +162,3 @@ pub extern "C" fn mangling_demangle(
         },
     }
 }
-
