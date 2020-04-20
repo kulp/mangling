@@ -191,12 +191,8 @@ pub fn demangle(name : &str) -> ManglingResult<Vec<u8>> {
                     ),
                 };
 
-                let check = |x| match x {
-                    None => ManglingResult::Err("Input ended too soon".into()),
-                    Some(y) => ManglingResult::Ok(y),
-                };
-                from.extend(check(piece)?.as_ref());
-                demangle_inner(check(remainder)?.as_ref(), from)
+                from.extend(piece.ok_or("Input ended too soon")?.as_ref());
+                demangle_inner(remainder.ok_or("Input ended too soon")?.as_ref(), from)
             },
             _ => Err("did not find a number".into()),
         }
