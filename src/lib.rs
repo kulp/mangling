@@ -20,10 +20,27 @@
 //! 1. Readability (mangled names are visibly related to input streams)
 //! 1. Compactness (mangled names are comparable in length to inputs)
 //! 1. Performance (processing is computationally efficient in time and space)
+#![deny(bare_trait_objects)]
 #![deny(clippy::cmp_null)]
+#![deny(clippy::comparison_chain)]
 #![deny(clippy::extra_unused_lifetimes)]
+#![deny(clippy::filter_next)]
+#![deny(clippy::inefficient_to_string)]
+#![deny(clippy::items_after_statements)]
+#![deny(clippy::just_underscores_and_digits)]
 #![deny(clippy::missing_safety_doc)]
+#![deny(clippy::needless_borrow)]
+#![deny(clippy::option_unwrap_used)]
+#![deny(clippy::redundant_clone)]
+#![deny(clippy::redundant_field_names)]
+#![deny(clippy::result_unwrap_used)]
 #![deny(clippy::transmute_ptr_to_ptr)]
+#![deny(clippy::unreadable_literal)]
+#![deny(unconditional_recursion)]
+#![deny(unreachable_patterns)]
+#![deny(unused_imports)]
+#![deny(unused_mut)]
+#![deny(unused_variables)]
 
 use std::error::Error;
 use std::str::FromStr;
