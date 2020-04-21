@@ -79,7 +79,7 @@ mod test;
 /// documentation, then a mangling call can be as simple as the following:
 /// ```c
 /// char input[16] = "hello, world",
-/// char result[4 * sizeof input];
+/// char result[1 + 5 * sizeof input]; // Worst-case length
 /// size_t outsize = sizeof result;
 /// int success = mangling_mangle(strlen(input), input, &outsize, result);
 /// fwrite(result, 1, outsize, stdout);
