@@ -29,6 +29,9 @@ mod test;
 /// Failure is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in for the `inptr` argument but the `insize` is nonzero.
 ///
+/// The output is never NUL-terminated. If NUL termination is desired, and the `outstr` buffer is
+/// big enough, simply perform `outstr[*outsize] = '\0';` after `mangling_mangle`.
+///
 /// # Examples
 /// Some of the examples below are shown in (doctested) Rust code to demonstrate correctness, but
 /// it is not expected that Rust users will use the C interfaces.
