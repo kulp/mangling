@@ -147,7 +147,7 @@ pub extern "C" fn mangling_mangle(
 /// Specifically, it is not an error to supply an output buffer that is too small; in such a case,
 /// the output will simply be truncated to the provided length.
 ///
-/// A null input pointers (`None` in the Rust interface) is not erroneous per se, but since at best
+/// A null input pointer (`None` in the Rust interface) is not erroneous per se, but since at best
 /// it can represent only an empty string, which is never demanglable, an error is reported:
 /// ```
 /// # use mangling::clib::*;
