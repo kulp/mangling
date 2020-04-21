@@ -26,8 +26,11 @@ mod test;
 /// - writes no more bytes than specified in `outsize`, and
 /// - updates the size referenced by `outsize` with the number of bytes copied through `outstr`.
 ///
-/// Failure is indicated with a non-zero exit code under the following conditions:
+/// An error is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in for the `inptr` argument but the `insize` is nonzero.
+///
+/// Specifically, it is not an error to supply an output buffer that is too small; in such a case,
+/// the output will simply be truncated to the provided length.
 ///
 /// The output is never NUL-terminated. If NUL termination is desired, and the `outstr` buffer is
 /// big enough, simply perform `outstr[*outsize] = '\0';` after `mangling_mangle`.
@@ -138,8 +141,11 @@ pub extern "C" fn mangling_mangle(
 /// - writes no more bytes than specified in `outsize`,
 /// - updates the size referenced by `outsize` with the number of bytes copied through `outptr`.
 ///
-/// Failure is indicated with a non-zero exit code under the following conditions:
+/// An error is indicated with a non-zero exit code under the following conditions:
 /// - the input string was not a valid mangled name.
+///
+/// Specifically, it is not an error to supply an output buffer that is too small; in such a case,
+/// the output will simply be truncated to the provided length.
 ///
 /// A null input pointers (`None` in the Rust interface) is not erroneous per se, but since at best
 /// it can represent only an empty string, which is never demanglable, an error is reported:
