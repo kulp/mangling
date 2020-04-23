@@ -108,15 +108,14 @@ pub fn mangle<T>(name : impl IntoIterator<Item = T>) -> String
 where
     T : core::borrow::Borrow<u8>,
 {
-    use std::cell::Cell;
     use std::rc::Rc;
 
-    type Many = Rc<Cell<usize>>;
+    type Many = Rc<()>;
 
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
     let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
 
-    let start = (None, true, Rc::new(Cell::new(0))); // word v. nonword ; begin v. nonbegin ; count
+    let start = (None, true, Rc::new(())); // word v. nonword ; begin v. nonbegin ; count
 
     // For now, we need to collect into a vector so that Rc<> pointers are viewed after all updates
     // have occurred, rather than just as they are created.
@@ -125,17 +124,11 @@ where
         .scan(start, |st : &mut (Option<bool>, bool, Many), item| {
             let item = *item.borrow();
             let ch = char::from(item);
-            let increment = || {
-                let c = Rc::clone(&st.2);
-                c.set(c.get() + 1);
-                c
-            };
-            let switch = || Rc::new(Cell::new(1));
             *st = match (st.0, begin_ok(ch), within_ok(ch)) {
                 (Some(tf @ true), _, true) | (Some(tf @ false), false, _) => {
-                    (Some(tf), false, increment())
+                    (Some(tf), false, Rc::clone(&st.2))
                 },
-                (_, tf, _) => (Some(tf), true, switch()),
+                (_, tf, _) => (Some(tf), true, Rc::new(())),
             };
             Some((st.clone(), item))
         })
@@ -150,8 +143,8 @@ where
         .into_iter()
         .fold(out, |mut vec, ((wordlike, beginning, count), ch)| {
             match (wordlike, beginning) {
-                (Some(true), true) => vec.extend(count.get().to_string().bytes()),
-                (Some(false), true) => vec.extend(format!("0{}_", count.get()).bytes()),
+                (Some(true), true) => vec.extend(Rc::strong_count(&count).to_string().bytes()),
+                (Some(false), true) => vec.extend(format!("0{}_", Rc::strong_count(&count)).bytes()),
                 _ => {},
             };
             match wordlike {
