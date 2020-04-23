@@ -56,7 +56,7 @@ mod test;
 /// The length N of the output in bytes, relative to the input length K, follows these rules, which
 /// are considered to be requirements on future implementations:
 /// - N > K
-/// - N ≤ 5 * K + 1
+/// - N ≤ 4 * K + 2
 /// - N ≤ ceil(3.5 * K) + 2 when K > 1
 ///
 /// Additionally, the current implementation satisfies these additional constraints:
