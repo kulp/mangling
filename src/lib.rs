@@ -135,7 +135,7 @@ where
         .collect();
 
     let out = {
-        let mut out = Vec::with_capacity(result.len() * 2); // heuristic
+        let mut out = Vec::with_capacity(result.len().saturating_mul(2)); // heuristic
         out.push(b'_');
         out
     };
