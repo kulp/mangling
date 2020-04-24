@@ -144,7 +144,9 @@ where
         .fold(out, |mut vec, ((wordlike, beginning, count), ch)| {
             match (wordlike, beginning) {
                 (Some(true), true) => vec.extend(Rc::strong_count(&count).to_string().bytes()),
-                (Some(false), true) => vec.extend(format!("0{}_", Rc::strong_count(&count)).bytes()),
+                (Some(false), true) => {
+                    vec.extend(format!("0{}_", Rc::strong_count(&count)).bytes())
+                },
                 _ => {},
             };
             match wordlike {
@@ -170,7 +172,11 @@ where
 /// mangled symbol, in its entirety and nothing more.
 pub fn demangle(name : &str) -> Result<Vec<u8>, Box<dyn Error>> {
     fn demangle_inner(name : &[u8], mut from : Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
-        let found = name.iter().enumerate().find(|(_, x)| !x.is_ascii_digit()).map(|(x, _)| x);
+        let found = name
+            .iter()
+            .enumerate()
+            .find(|(_, x)| !x.is_ascii_digit())
+            .map(|(x, _)| x);
         match (name, found) {
             (&[], _) => {
                 from.shrink_to_fit();
