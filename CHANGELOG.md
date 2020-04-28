@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2020-04-27
+### Changed
+- Improved documentation somewhat.
+- Tightened bounds on maximum mangled size.
+- Decreased run time of mangling by about 5-8%.
+
+### Removed
+- Removed `ManglingResult` type alias.
+
 ## [0.2.1] - 2020-04-19
 ### Added
 - Guaranteed certain bounds on mangled-name lengths.
