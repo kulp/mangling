@@ -110,9 +110,6 @@ where
 {
     use std::rc::Rc;
 
-    let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
-    let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
-
     let start = (None, true, Rc::new(())); // word v. nonword ; begin v. nonbegin ; count
 
     // For now, we need to collect into a vector so that Rc<> pointers are viewed after all updates
@@ -122,7 +119,10 @@ where
         .scan(start, |st : &mut (Option<bool>, bool, Rc<()>), item| {
             let item = *item.borrow();
             let ch = char::from(item);
-            *st = match (st.0, begin_ok(ch), within_ok(ch)) {
+            let begin_ok = ch.is_ascii_alphabetic() || ch == '_';
+            let within_ok = begin_ok || ch.is_ascii_digit();
+
+            *st = match (st.0, begin_ok, within_ok) {
                 (Some(tf @ true), _, true) | (Some(tf @ false), false, _) => {
                     (Some(tf), false, Rc::clone(&st.2))
                 },
