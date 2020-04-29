@@ -116,7 +116,7 @@ where
     // have occurred, rather than just as they are created.
     let result : Vec<_> = name
         .into_iter()
-        .scan(start, |st : &mut (Option<bool>, bool, Rc<()>), item| {
+        .scan(start, |st, item| {
             let item = *item.borrow();
             let ch = char::from(item);
             let begin_ok = ch.is_ascii_alphabetic() || ch == '_';
