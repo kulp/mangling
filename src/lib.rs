@@ -118,9 +118,8 @@ where
         .into_iter()
         .scan(start, |st, item| {
             let item = *item.borrow();
-            let ch = char::from(item);
-            let begin_ok = ch.is_ascii_alphabetic() || ch == '_';
-            let within_ok = begin_ok || ch.is_ascii_digit();
+            let begin_ok = item.is_ascii_alphabetic() || item == b'_';
+            let within_ok = begin_ok || item.is_ascii_digit();
 
             *st = match (st.0, begin_ok, within_ok) {
                 (Some(tf @ true), _, true) | (Some(tf @ false), false, _) => {
