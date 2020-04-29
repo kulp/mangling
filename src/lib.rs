@@ -110,8 +110,6 @@ where
 {
     use std::rc::Rc;
 
-    type Many = Rc<()>;
-
     let begin_ok = |x : char| x.is_ascii_alphabetic() || x == '_';
     let within_ok = |x : char| begin_ok(x) || x.is_ascii_digit();
 
@@ -121,7 +119,7 @@ where
     // have occurred, rather than just as they are created.
     let result : Vec<_> = name
         .into_iter()
-        .scan(start, |st : &mut (Option<bool>, bool, Many), item| {
+        .scan(start, |st : &mut (Option<bool>, bool, Rc<()>), item| {
             let item = *item.borrow();
             let ch = char::from(item);
             *st = match (st.0, begin_ok(ch), within_ok(ch)) {
