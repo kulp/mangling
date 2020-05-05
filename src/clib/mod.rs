@@ -2,7 +2,7 @@
 //!
 //! Although the code is written such that it should be possible to mangle and demangle in-place
 //! (using the same location for in- and out-pointers), the declaration of the parameter types
-//! (using Rust references), prohibits such aliasing, so it is not safe to do so. If significant
+//! (using Rust references) prohibits such aliasing, so it is not safe to do so. If significant
 //! cause is found to support processing in place, the Rust function declaration could potentially
 //! be changed (without changing the C interface) to allow it.
 use std::os::raw::{c_char, c_int};
