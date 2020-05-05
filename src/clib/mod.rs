@@ -137,8 +137,9 @@ pub extern "C" fn mangling_mangle(
 /// This function:
 /// - returns a zero value upon success and a non-zero value on failure,
 /// - has well-defined behavior for any combination of null pointer arguments,
-/// - writes a sequence of bytes (possibly including NUL) into a buffer provided by the caller,
-/// - writes no more bytes than specified in `outsize`,
+/// - places its output into a buffer provided by the caller,
+/// - produces a sequence of arbitrary bytes, possibly including embedded NULs,
+/// - writes no more bytes than specified by the caller via `outsize`,
 /// - updates the size referenced by `outsize` with the number of bytes copied through `outptr`.
 ///
 /// A failure is indicated with a non-zero exit code under the following conditions:
