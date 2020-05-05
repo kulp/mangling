@@ -10,6 +10,14 @@
 //! easy, reliable way for compiler writers to generate human-recognizable identifiers without
 //! having to invent their own mangling scheme.
 //!
+//! # Example
+//! ```rust
+//! # use mangling::{demangle, mangle};
+//! let (before, after) = ("java/lang/Object", "_4java01_2f4lang01_2f6Object");
+//! assert_eq!(after, mangle(before.as_bytes()));
+//! assert_eq!(before.as_bytes(), demangle(after).unwrap().as_slice());
+//! ```
+//!
 //! # Requirements
 //! 1. Totality (every byte stream can be encoded into a unique mangled name)
 //! 1. Injectivity (each mangled name can be decoded to a unique byte stream)
