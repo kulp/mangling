@@ -22,7 +22,7 @@ mod test;
 /// This function:
 /// - returns a zero value upon success and a non-zero value on error,
 /// - has well-defined behavior for any combination of null pointer arguments,
-/// - copies a sequence of non-NUL bytes into a buffer provided by the caller,
+/// - writes a sequence of non-NUL bytes into a buffer provided by the caller,
 /// - writes no more bytes than specified in `outsize`, and
 /// - updates the size referenced by `outsize` with the number of bytes copied through `outstr`.
 ///
@@ -137,7 +137,7 @@ pub extern "C" fn mangling_mangle(
 /// This function:
 /// - returns a zero value upon success and a non-zero value on error,
 /// - has well-defined behavior for any combination of null pointer arguments,
-/// - copies a sequence of bytes (possibly including NUL) into a buffer provided by the caller,
+/// - writes a sequence of bytes (possibly including NUL) into a buffer provided by the caller,
 /// - writes no more bytes than specified in `outsize`,
 /// - updates the size referenced by `outsize` with the number of bytes copied through `outptr`.
 ///
