@@ -20,17 +20,17 @@ mod test;
 /// ```
 ///
 /// This function:
-/// - returns a zero value upon success and a non-zero value on error,
+/// - returns a zero value upon success and a non-zero value on failure,
 /// - has well-defined behavior for any combination of null pointer arguments,
 /// - writes a sequence of non-NUL bytes into a buffer provided by the caller,
 /// - writes no more bytes than specified in `outsize`, and
 /// - updates the size referenced by `outsize` with the number of bytes copied through `outstr`.
 ///
-/// An error is indicated with a non-zero exit code under the following conditions:
+/// A failure is indicated with a non-zero exit code under the following conditions:
 /// - a null pointer was passed in for the `inptr` argument but the `insize` is nonzero.
 ///
-/// Specifically, it is not an error to supply an output buffer that is too small; in such a case,
-/// the output will simply be truncated to the provided length.
+/// It is not an error to supply an output buffer that is too small; in such a case, the output
+/// will simply be truncated to the provided length.
 ///
 /// The output is never NUL-terminated. If NUL termination is desired, and the `outstr` buffer is
 /// big enough, simply perform `outstr[*outsize] = '\0';` after `mangling_mangle`.
@@ -135,21 +135,21 @@ pub extern "C" fn mangling_mangle(
 /// ```
 ///
 /// This function:
-/// - returns a zero value upon success and a non-zero value on error,
+/// - returns a zero value upon success and a non-zero value on failure,
 /// - has well-defined behavior for any combination of null pointer arguments,
 /// - writes a sequence of bytes (possibly including NUL) into a buffer provided by the caller,
 /// - writes no more bytes than specified in `outsize`,
 /// - updates the size referenced by `outsize` with the number of bytes copied through `outptr`.
 ///
-/// An error is indicated with a non-zero exit code under the following conditions:
+/// A failure is indicated with a non-zero exit code under the following conditions:
 /// - the input string was not a valid mangled name.
 ///
-/// Specifically, it is not an error to supply an output buffer that is too small; in such a case,
-/// the output will simply be truncated to the provided length.
+/// It is not an error to supply an output buffer that is too small; in such a case, the output
+/// will simply be truncated to the provided length.
 ///
 /// A null input pointer (`None` in the Rust interface) is not an error *per se*, but since at best
-/// (when `insize` is 0) it can represent only an empty string, which is never demanglable, an
-/// error is reported:
+/// (when `insize` is 0) it can represent only an empty string, which is never demanglable, failure
+/// is reported:
 /// ```
 /// # use mangling::clib::*;
 /// // Demangling an empty string is not meaningful, and must fail
