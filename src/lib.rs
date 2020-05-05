@@ -58,8 +58,8 @@ pub mod clib;
 #[cfg(test)]
 mod test;
 
-/// Takes an `IntoIterator` over `u8` and produces a `String` that is safe to
-/// use as an identifier in the C language.
+/// Takes an iterator over bytes and produces a `String` whose contents obey the rules for an
+/// identifier in the C language.
 ///
 /// The length N of the output in bytes, relative to the input length K, follows these rules, which
 /// are considered to be requirements on future implementations:
@@ -168,9 +168,7 @@ where
     unsafe { String::from_utf8_unchecked(result) }
 }
 
-/// Takes a string slice corresponding to a symbol as converted by the `mangle`
-/// function, and returns a vector of bytes corresponding to the original input
-/// to the `mangle` function.
+/// Reverses the transformation performed by `mangle`.
 ///
 /// # Failures
 /// An `Err` result will be returned if the input is not exactly a validly
