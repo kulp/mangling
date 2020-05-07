@@ -65,7 +65,7 @@ quickcheck! {
         let mangled = mangle(orig);
         let n = mangled.len();
         assert!(n > k);
-        assert!(n <= 5 * k + 1);
+        assert!(n <= 4 * k + 2);
         assert!(k <= 1 || n <= (3.5 * k as f64).ceil() as usize + 2);
     }
 
