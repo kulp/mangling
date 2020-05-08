@@ -15,7 +15,6 @@ crate-type = ["lib", "staticlib", "cdylib"]
 
 [badges]
 maintenance = { status = "experimental" }
-codecov = { repository = "kulp/mangling", branch = "develop", service = "github" }
 
 [dev-dependencies]
 quickcheck = "0.9"
