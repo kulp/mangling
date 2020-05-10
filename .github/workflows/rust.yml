@@ -12,10 +12,14 @@ jobs:
     strategy:
       matrix:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
+        rust: [ stable, beta, 1.42.0 ]
 
     runs-on: ${{ matrix.os }}
 
     steps:
+    - uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: ${{ matrix.rust }}
     - uses: actions/checkout@v2
     - name: Build
       run: cargo build --verbose
