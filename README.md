@@ -20,6 +20,9 @@ At present, only one mangling scheme is supported, with a fixed format defined i
 1. Totality (every byte stream can be encoded into a unique mangled name)
 1. Injectivity (each mangled name can be decoded to a unique byte stream)
 
+#### Minimum Supported Rust Version
+The minimum supported Rust version is 1.42.0.
+
 ### Goals
 1. Correctness (the implementation matches its documented behavior)
 1. Consistency (the implementation behaves in a predictable manner)
