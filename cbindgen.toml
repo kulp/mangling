@@ -1,0 +1,4 @@
+cpp_compat = true
+include_guard = "mangling_h"
+language = "C"
+tab_width = 4
