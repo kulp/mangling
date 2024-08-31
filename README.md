@@ -4,10 +4,13 @@
 [![Rust](https://github.com/kulp/mangling/workflows/Rust/badge.svg)](https://github.com/kulp/mangling/actions?query=workflow%3ARust+branch%3Adevelop)
 [![codecov](https://codecov.io/gh/kulp/mangling/branch/develop/graph/badge.svg)](https://codecov.io/gh/kulp/mangling)
 [![Docs.rs](https://docs.rs/mangling/badge.svg)](https://docs.rs/mangling/)
-![rustc 1.42+](https://img.shields.io/badge/rustc-1.42+-yellow.svg)
 
 ## Purpose
 This library provides for reversibly generating identifiers (hereinafter "mangled names") that are valid under C-language rules, from arbitrary byte streams, while maintaining a measure of human readability.
+
+## Examples
+
+[See `lib.rs` for examples](https://github.com/kulp/mangling/blob/develop/src/lib.rs#L77-L85) of strings with their manglings.
 
 ## Rationale
 The functionality of `mangling` was hoisted out of a compiler that needed to translate identifiers for Java symbols (e.g. method names and signatures) into symbols valid for the generated assembly language. Although the mangling process can encode any stream of bytes into a (longer) string of ASCII characters, and then convert the output back again, it is not intended to provide general encoding/decoding facilities. Instead, it is meant to provide an easy, reliable way for compiler writers to generate human-recognizable identifiers without having to invent their own mangling scheme.
@@ -21,7 +24,7 @@ At present, only one mangling scheme is supported, with a fixed format defined i
 1. Injectivity (each mangled name can be decoded to a unique byte stream)
 
 #### Minimum Supported Rust Version
-The minimum supported Rust version is 1.42.0.
+The minimum supported Rust version is documented in `Cargo.toml` via the `rust-version` key. The MSRV for `mangling` may change at any time, but usually for good reasons.
 
 ### Goals
 1. Correctness (the implementation matches its documented behavior)
@@ -32,4 +35,3 @@ The minimum supported Rust version is 1.42.0.
 
 ## Feedback
 Any demonstrated failure of `mangling` to meet its stated requirements should be reported through Github, and pull requests are welcomed.
-

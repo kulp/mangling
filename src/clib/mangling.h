@@ -11,49 +11,6 @@ extern "C" {
 #endif // __cplusplus
 
 /**
- * Provides a C-compatible interface to the `demangle` function.
- *
- * This function is compatible with the C function declaration:
- * ```c
- * int mangling_demangle(size_t insize, const char *instr, size_t *outsize, char *outptr);
- * ```
- *
- * This function:
- * - returns a zero value upon success and a non-zero value on failure,
- * - has well-defined behavior for any combination of null pointer arguments,
- * - places its output into a buffer provided by the caller,
- * - produces a sequence of arbitrary bytes, possibly including embedded NULs,
- * - writes no more bytes than specified by the caller via `outsize`,
- * - updates the size referenced by `outsize` with the number of bytes copied through `outptr`.
- *
- * A failure is indicated with a non-zero exit code under the following conditions:
- * - the input string was not a valid mangled name.
- *
- * It is not an error to supply an output buffer that is too small; in such a case, the output
- * will simply be truncated to the provided length.
- *
- * A null input pointer (`None` in the Rust interface) is not an error *per se*, but since at best
- * (when `insize` is 0) it can represent only an empty string, which is never demanglable, failure
- * is reported:
- * ```
- * # use mangling::clib::*;
- * // Demangling an empty string is not meaningful, and must fail
- * let success = mangling_demangle(0, None, None, None);
- * assert_ne!(success, 0);
- * ```
- *
- * # Example
- * In C:
- * ```c
- * char result[128];
- * size_t outsize = sizeof result;
- * int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, result);
- * fwrite(result, 1, outsize, stdout);
- * ```
- */
-int mangling_demangle(uintptr_t insize, const char *instr, uintptr_t *outsize, char *outptr);
-
-/**
  * Provides a C-compatible interface to the `mangle` function.
  *
  * This function is compatible with the C function declaration:
@@ -135,8 +92,51 @@ int mangling_demangle(uintptr_t insize, const char *instr, uintptr_t *outsize, c
  */
 int mangling_mangle(uintptr_t insize, const char *inptr, uintptr_t *outsize, char *outstr);
 
-#ifdef __cplusplus
-} // extern "C"
-#endif // __cplusplus
+/**
+ * Provides a C-compatible interface to the `demangle` function.
+ *
+ * This function is compatible with the C function declaration:
+ * ```c
+ * int mangling_demangle(size_t insize, const char *instr, size_t *outsize, char *outptr);
+ * ```
+ *
+ * This function:
+ * - returns a zero value upon success and a non-zero value on failure,
+ * - has well-defined behavior for any combination of null pointer arguments,
+ * - places its output into a buffer provided by the caller,
+ * - produces a sequence of arbitrary bytes, possibly including embedded NULs,
+ * - writes no more bytes than specified by the caller via `outsize`,
+ * - updates the size referenced by `outsize` with the number of bytes copied through `outptr`.
+ *
+ * A failure is indicated with a non-zero exit code under the following conditions:
+ * - the input string was not a valid mangled name.
+ *
+ * It is not an error to supply an output buffer that is too small; in such a case, the output
+ * will simply be truncated to the provided length.
+ *
+ * A null input pointer (`None` in the Rust interface) is not an error *per se*, but since at best
+ * (when `insize` is 0) it can represent only an empty string, which is never demanglable, failure
+ * is reported:
+ * ```
+ * # use mangling::clib::*;
+ * // Demangling an empty string is not meaningful, and must fail
+ * let success = mangling_demangle(0, None, None, None);
+ * assert_ne!(success, 0);
+ * ```
+ *
+ * # Example
+ * In C:
+ * ```c
+ * char result[128];
+ * size_t outsize = sizeof result;
+ * int success = mangling_demangle(strlen(argv[1]), argv[1], &outsize, result);
+ * fwrite(result, 1, outsize, stdout);
+ * ```
+ */
+int mangling_demangle(uintptr_t insize, const char *instr, uintptr_t *outsize, char *outptr);
 
-#endif /* mangling_h */
+#ifdef __cplusplus
+}  // extern "C"
+#endif  // __cplusplus
+
+#endif  /* mangling_h */

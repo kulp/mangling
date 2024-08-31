@@ -41,7 +41,7 @@ fn overflow() {
 }
 
 #[test]
-#[allow(clippy::result_unwrap_used)]
+#[allow(clippy::unwrap_used)]
 fn demangling() {
     for (unmangled, mangled) in MANGLE_LIST {
         let want : Vec<u8> = (*unmangled).to_string().into();
@@ -55,7 +55,7 @@ fn demangling() {
 }
 
 quickcheck! {
-    #[allow(clippy::result_unwrap_used)]
+    #[allow(clippy::unwrap_used)]
     fn mangling_roundtrip(rs : Vec<u8>) -> bool {
         rs == demangle(&mangle(rs.clone())).unwrap()
     }
@@ -79,7 +79,7 @@ quickcheck! {
 }
 
 quickcheck! {
-    #[allow(clippy::result_unwrap_used)]
+    #[allow(clippy::unwrap_used)]
     fn hexing(byte : u8) -> () {
         let got = hexify(byte);
         let want = format!("{:02x}", byte);
