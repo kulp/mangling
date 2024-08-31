@@ -11,8 +11,13 @@ jobs:
 
     strategy:
       matrix:
-        os: [ macos-latest, windows-latest, ubuntu-latest ]
-        rust: [ stable, beta, 1.42.0 ]
+        os: [ macos-13, windows-latest, ubuntu-latest ]
+        rust: [ stable, 1.42.0 ]
+        include:
+          - os: ubuntu-latest
+            rust: beta
+          - os: macos-14
+            rust: stable
 
     runs-on: ${{ matrix.os }}
 
