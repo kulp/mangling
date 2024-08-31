@@ -9,6 +9,10 @@
 ## Purpose
 This library provides for reversibly generating identifiers (hereinafter "mangled names") that are valid under C-language rules, from arbitrary byte streams, while maintaining a measure of human readability.
 
+## Examples
+
+[See `lib.rs` for examples](https://github.com/kulp/mangling/blob/develop/src/lib.rs#L77-L85) of strings with their manglings.
+
 ## Rationale
 The functionality of `mangling` was hoisted out of a compiler that needed to translate identifiers for Java symbols (e.g. method names and signatures) into symbols valid for the generated assembly language. Although the mangling process can encode any stream of bytes into a (longer) string of ASCII characters, and then convert the output back again, it is not intended to provide general encoding/decoding facilities. Instead, it is meant to provide an easy, reliable way for compiler writers to generate human-recognizable identifiers without having to invent their own mangling scheme.
 
@@ -32,4 +36,3 @@ The minimum supported Rust version is 1.42.0.
 
 ## Feedback
 Any demonstrated failure of `mangling` to meet its stated requirements should be reported through Github, and pull requests are welcomed.
-
