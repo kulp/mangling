@@ -17,4 +17,4 @@ crate-type = ["lib", "staticlib", "cdylib"]
 maintenance = { status = "experimental" }
 
 [dev-dependencies]
-quickcheck = "0.9"
+quickcheck = "1"
