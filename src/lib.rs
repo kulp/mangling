@@ -200,7 +200,7 @@ pub fn demangle(name : &str) -> Result<Vec<u8>, Box<dyn Error>> {
                         rest.get(hexlen?..).map(Cow::Borrowed),
                     ),
                     ([b'0', ..], ..) => return Err("Bad identifier (expected `_`)".into()),
-                    (_, [rest @ ..]) => (
+                    (_, rest) => (
                         rest.get(..len).map(Cow::Borrowed),
                         rest.get(len..).map(Cow::Borrowed),
                     ),
