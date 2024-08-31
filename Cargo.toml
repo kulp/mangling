@@ -2,7 +2,8 @@
 name = "mangling"
 version = "0.2.4"
 authors = ["Darren Kulp <darren@kulp.ch>"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.68.0"
 keywords = ["mangling", "name-mangling", "identifier"]
 categories = ["development-tools", "encoding"]
 description = "mangling generates safe, recognizable identifiers from byte streams."

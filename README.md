@@ -4,7 +4,6 @@
 [![Rust](https://github.com/kulp/mangling/workflows/Rust/badge.svg)](https://github.com/kulp/mangling/actions?query=workflow%3ARust+branch%3Adevelop)
 [![codecov](https://codecov.io/gh/kulp/mangling/branch/develop/graph/badge.svg)](https://codecov.io/gh/kulp/mangling)
 [![Docs.rs](https://docs.rs/mangling/badge.svg)](https://docs.rs/mangling/)
-![rustc 1.42+](https://img.shields.io/badge/rustc-1.42+-yellow.svg)
 
 ## Purpose
 This library provides for reversibly generating identifiers (hereinafter "mangled names") that are valid under C-language rules, from arbitrary byte streams, while maintaining a measure of human readability.
@@ -25,7 +24,7 @@ At present, only one mangling scheme is supported, with a fixed format defined i
 1. Injectivity (each mangled name can be decoded to a unique byte stream)
 
 #### Minimum Supported Rust Version
-The minimum supported Rust version is 1.42.0.
+The minimum supported Rust version is documented in `Cargo.toml` via the `rust-version` key. The MSRV for `mangling` may change at any time, but usually for good reasons.
 
 ### Goals
 1. Correctness (the implementation matches its documented behavior)

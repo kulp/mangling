@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Made small documentation and code style improvements.
 - Updated dev-dependency on [quickcheck] to 1.0.
+- Updated MSRV to 1.68.0.
+- Updated edition to 2021.
 
 ## [0.2.3] - 2020-11-28
 ### Changed
