@@ -98,16 +98,16 @@ mod test;
 /// first, after which the two types alternate strictly.
 ///
 /// - A printable group corresponds to the longest substring of the input that
-/// can be consumed while matching the (case-insensitive) regular expression
-/// `[a-z][a-z0-9_]*`. The mangled form is `Naaa` where `N` is the unbounded
-/// decimal length of the substring in the original input, and `aaa` is the
-/// literal substring.
+///   can be consumed while matching the (case-insensitive) regular expression
+///   `[a-z][a-z0-9_]*`. The mangled form is `Naaa` where `N` is the unbounded
+///   decimal length of the substring in the original input, and `aaa` is the
+///   literal substring.
 /// - A non-printable group represents the shortest substring in the input that
-/// can be consumed before a printable substring begins to match. The mangled
-/// form is `0N_xxxxxx` where `0` and `_` are literal, `N` is the unbounded
-/// decimal length of the substring in the original input, and `xxxxxx` is the
-/// lowercase hexadecimal expansion of the original bytes (two hexadecimal
-/// digits per input byte, most significant nybble first).
+///   can be consumed before a printable substring begins to match. The mangled
+///   form is `0N_xxxxxx` where `0` and `_` are literal, `N` is the unbounded
+///   decimal length of the substring in the original input, and `xxxxxx` is the
+///   lowercase hexadecimal expansion of the original bytes (two hexadecimal
+///   digits per input byte, most significant nybble first).
 ///
 /// Note that despite the description above, the current implementation does not
 /// actually use regular expressions for matching.
